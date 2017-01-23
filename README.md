@@ -1,5 +1,5 @@
 # rqbv
-cryptographers are good at imagination... this module helps ones that love
+cryptographers are good at imagination... this module helps new learners that love
 lattice crypto (specifically RLWE) but not yet good at imagination, to
 learn, to see how beautiful they are...
 
