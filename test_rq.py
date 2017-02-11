@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 from unittest import TestCase
 
-from src.bv.bv import poly_multiply, BV, Rq, modmath, \
+from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot
 
 
@@ -282,7 +282,7 @@ class TestBV(TestCase):
     def test_add_mult_diff_t(self):
         # t and sigma choices affect the error growth, which then
         # affect the choice of q
-        bv2 = BV(n=3, t=20, q=2 ** 20 - 3)
+        bv2 = BV(n=3, t=20, q=2 ** 100 - 3)
         (sk, pk) = bv2.genkey()
         m1 = Rq(n=3, q=bv2.t, coeffs=[15, 4, 1])
         m2 = Rq(n=3, q=bv2.t, coeffs=[1, 2, 8])
@@ -330,7 +330,7 @@ class TestBV(TestCase):
         self.assertEqual(m2, pm2)
 
     def test_inner_product(self):
-        bv = BV(n=6, t=10, q=2 ** 20 - 3)
+        bv = BV(n=6, t=10, q=2 ** 100 - 3)
         (sk, pk) = bv.genkey()
         p = Rq(n=6, q=bv.t, coeffs=[1, 1, 0, 0, 1, 1])
         q = Rq(n=6, q=bv.t, coeffs=[1, 1, 0, 1, 0, 1])
@@ -346,7 +346,7 @@ class TestBV(TestCase):
         self.assertEqual(c[0], 3)
 
     def test_hamming_distance(self):
-        bv = BV(n=6, t=12, q=2 ** 25 - 3)
+        bv = BV(n=6, t=12, q=2 ** 100 - 3)
         (sk, pk) = bv.genkey()
         p = Rq(n=6, q=bv.t, coeffs=[1, 0, 1, 0, 1, 0])
         q = Rq(n=6, q=bv.t, coeffs=[1, 1, 0, 1, 0, 1])
@@ -359,7 +359,7 @@ class TestBV(TestCase):
         self.assertEqual(plain_hd[0], 5)
 
     def test_mask_hd(self):
-        bv = BV(n=6, t=12, q=2 ** 20 - 3)
+        bv = BV(n=6, t=12, q=2 ** 100 - 3)
         (sk, pk) = bv.genkey()
         p = Rq(n=6, q=bv.t, coeffs=[1, 0, 1, 0, 1, 0])
         q = Rq(n=6, q=bv.t, coeffs=[1, 1, 0, 1, 0, 1])
@@ -379,7 +379,7 @@ class TestBV(TestCase):
         bv = BV(n=6, t=12, q=2 ** 25 - 3)
 
         # input = 1
-        input = bv.n / 2 + 1
+        input = bv.n // 2 + 1
         rinput = bv.unary_encode(input)
         a = [0 for _ in range(0, bv.n)]
         a[input] = 1
@@ -466,4 +466,5 @@ class TestBV(TestCase):
                          (Rq.add_matrix(b.rot_matrix(), c.rot_matrix(),5)))
         a = b*c
         # print(a.rot_matrix())
+
 

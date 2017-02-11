@@ -2,7 +2,7 @@ from random import randint
 
 # note: it's hard to install scipy on windows
 from scipy.fftpack import fft, ifft
-from numpy import real, base_repr
+from numpy import real, base_repr, convolve
 
 
 def modmath(a, b):
@@ -35,12 +35,8 @@ def rot(a):
 
 def poly_multiply(a, b):
     """multiply 2 polynomials using DFT"""
-    N = len(a) + len(b) - 1
-    A = fft(a, N)
-    B = fft(b, N)
-    C = A * B
-    c = map(lambda x: int(round(real(x))), ifft(C))
-    return c
+
+    return list(convolve(a,b))
 
 
 def mod_poly(poly, d):
@@ -48,7 +44,7 @@ def mod_poly(poly, d):
     original_len = len(poly)
     temp = [poly[x] for x in range(0, d)]
     for i in range(d, original_len):
-        power = i / d
+        power = i // d
         index = i % d
         if power == 1:
             plus = -1 * poly[i]
@@ -93,7 +89,7 @@ class Rq(list):
             coeffs = mod_poly(coeffs, n)
 
         for i, j in enumerate(coeffs):
-            if j >= q / 2 or j < 0:
+            if j >= q // 2 or j < 0:
                 coeffs[i] = modmath(j, q)
         super(Rq, self).__init__(coeffs)
 
