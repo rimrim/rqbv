@@ -1,11 +1,23 @@
 from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot
 from timer import Timer
+from bitarray import bitarray
+from math import log,ceil
+
+def bit_repr(x, d):
+    """Represent number x using d bits"""
+    # assert x > 2**d, 'encode value to large'
+    # assert x >= 0, 'negative value'
+    # assert d % 8 == 0, 'incorrect bit chunks'
+    bit_decomp = bin(x)[2:].zfill(d)
+    ret = bitarray(bit_decomp)
+    return ret
 
 n = 100
 q = 2**100 - 3
 sigma = 100
 t = 2*n
+l = ceil(log(t, 2))
 
 #Time to compute HD
 bv = BV(n = n, t = t, q = q, sigma= sigma)
@@ -21,13 +33,35 @@ pm1 = bv.pack1(X)
 pm2 = bv.pack2(Y)
 T = bv.enc(pm1, pk)
 Q = bv.enc(pm2, pk)
-with Timer() as t:
+
+#Compute HD
+with Timer() as ti:
     C_HD = bv.compute_hd(T, Q)
-print('time to compute HD is %s ms '%t.msecs)
+print('time for server to compute HD is %s ms '%ti.msecs)
 
-with Timer() as t:
-    plain_hd = bv.dec(C_HD, sk)
-    print('plain hd is %s '%plain_hd[0])
-print('time to decrypt HD is %s ms '%t.msecs)
+# mask the HD
+r = [t//10 for _ in range(n)]
+r = Rq(n = n, q = t, coeffs=r)
+EncR = bv.enc(r, pk)
+with Timer() as ti:
+    C_HDMask = bv.add(C_HD, EncR)
+print('time for server to add masking is %s ms'%ti.msecs)
 
+#decrypt HD Masked
+with Timer() as ti:
+    plain_hd = bv.dec(C_HDMask, sk)[0]
+    print('plain hd is %s '%plain_hd)
+print('time for client to decrypt HD is %s ms '%ti.msecs)
+
+#bits encryption
+bits = bit_repr(plain_hd, l).to01()
+list_bits = []
+for i,j in enumerate(bits):
+    temp = [0 for _ in range(n)]
+    temp[0] = i
+    list_bits.append(Rq(n = n, q = t, coeffs=temp))
+with Timer() as ti:
+    for i in list_bits:
+      C_i = bv.enc(i, sk)
+print('time for client to encrypt %s ciphertext is %s ms'%(len(bits),ti.msecs))
 
