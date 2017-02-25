@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
+import cProfile
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot
+from timer import Timer
 
 
 class TestRq(TestCase):
@@ -466,5 +468,42 @@ class TestBV(TestCase):
                          (Rq.add_matrix(b.rot_matrix(), c.rot_matrix(),5)))
         a = b*c
         # print(a.rot_matrix())
+        # with Timer() as t:
+        #     a = b*c
+        # print('time is %s ms'%t.msecs)
+
+    def test_poly_mult_time(self):
+        bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)
+        m1 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
+        m2 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
+        with Timer() as t:
+            poly_multiply(m1,m2)
+        print('time to do poly multiply %s ms'%t.msecs)
+        (sk,pk) = bv.genkey()
+
+        with Timer() as t:
+            c = bv.enc(m1, pk)
+        print('time to do enc %s ms'%t.msecs)
+
+        c = bv.enc(m1, pk)
+        with Timer() as t:
+            p = bv.dec(c, sk)
+        print('time to do dec %s ms'%t.msecs)
+
+
+
+        c1 = bv.enc(m1, pk)
+        c2 = bv.enc(m2, pk)
+
+        with Timer() as t:
+            p = bv.mult(c1, c2)
+        print('time to do homo multi %s ms'%t.msecs)
+
+        def do_test():
+            bv.mult(c1, c2)
+
+        # cProfile.runctx('do_test()', None, locals(), filename='test_enc')
+
+
 
 
