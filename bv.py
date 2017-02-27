@@ -443,3 +443,39 @@ class BV(object):
         t = modmath(t, self.q)
         t = modmath(t, self.t)
         return t
+
+    def map_to_j1(self, c):
+        c11 = [0 for _ in range(self.n)]
+        c11[0] = -1
+        c11[1] = 1
+        c11 = Rq(self.n, self.t, c11)
+        # c1 = self.enc(c11,self.pk)
+        c2 = [self.one,self.zeros]
+        c1 = [c11, self.zeros]
+        mult = self.mult(c,c1)
+        add = self.add(mult, c2)
+        return add
+
+    def map_to_j2(self, c):
+        c11 = [0 for _ in range(self.n)]
+        c11[0] = -1
+        c11[2] = 1
+        c11 = Rq(self.n, self.t, c11)
+        # c1 = self.enc(c11,self.pk)
+        c2 = [self.one,self.zeros]
+        c1 = [c11, self.zeros]
+        mult = self.mult(c,c1)
+        add = self.add(mult, c2)
+        return add
+
+    def map_to_j(self,c, j):
+        c11 = [0 for _ in range(self.n)]
+        c11[0] = -1
+        c11[j] = 1
+        c11 = Rq(self.n, self.t, c11)
+        c2 = [self.one, self.zeros]
+        c1 = [c11, self.zeros]
+        # c1 = self.enc(c11,self.pk)
+        mult = self.mult(c, c1)
+        return self.add(mult, c2)
+

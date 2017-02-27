@@ -431,13 +431,13 @@ class TestBV(TestCase):
         b = a.rot_matrix()
         self.assertEqual(b, [[1, 2, -2], [2, 1, 2], [-2, 2, 1]])
         c = Rq.vec_mult_matrix(a, b, 5)
-        print(c)
+        # print(c)
 
     def test_mult_matrix(self):
         a = Rq(n=3, q=5, coeffs=[1, 1, 1])
         b = a.rot_matrix()
         c = Rq.vec_mult_matrix(a, b, a.q)
-        print(c)
+        # print(c)
 
     def test_msb_extract(self):
         bv = BV(n=3, t=6, q=113, sigma=1)
@@ -472,37 +472,133 @@ class TestBV(TestCase):
         #     a = b*c
         # print('time is %s ms'%t.msecs)
 
-    def test_poly_mult_time(self):
-        bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)
-        m1 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
-        m2 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
-        with Timer() as t:
-            poly_multiply(m1,m2)
-        print('time to do poly multiply %s ms'%t.msecs)
+    def test_decryption_of_ufg_zero(self):
+        bv = BV(n = 3, q = 2**10, t = 6, sigma= 1)
+        X = [0 for _ in range(bv.n)]
+        X[0] = -1
+        X[1] = 1
+        X = Rq(bv.n, bv.t, X)
         (sk,pk) = bv.genkey()
+        c = [X, bv.zeros]
+        p = bv.dec(c, sk)
+        self.assertEqual(p,[-1,1,0])
+        X = [0 for _ in range(bv.n)]
+        X[0] = 1
+        X = Rq(bv.n, bv.t, X)
+        c = [X, bv.zeros]
+        p = bv.dec(c, sk)
+        self.assertEqual(p, [1, 0, 0])
 
-        with Timer() as t:
-            c = bv.enc(m1, pk)
-        print('time to do enc %s ms'%t.msecs)
+    def test_first_term(self):
+        bv = BV(n=5, q=2 ** 80, t=10, sigma=1)
+        X = [0 for _ in range(bv.n)]
+        X[0] = -1
+        X[1] = 1
+        X = Rq(bv.n, bv.t, X)
+        (sk,pk) = bv.genkey()
+        encx = bv.enc(X, pk)
+        Y = [0 for _ in range(bv.n)]
+        Y[0] = 1
+        Y = Rq(n = bv.n, q = bv.q, coeffs=Y)
+        encb = bv.enc(Y, pk)
+        mul = bv.mult(encx,encb)
+        p = bv.dec(mul, sk)
+        self.assertEqual(p,X)
+        enc1 = bv.enc(bv.one,pk)
+        r = bv.add(mul,enc1)
+        p = bv.dec(r, sk)
+        encb = bv.enc(bv.zeros, pk)
+        mul = bv.mult(encx, encb)
+        p = bv.dec(mul, sk)
+        enc1 = bv.enc(bv.one, pk)
+        r = bv.add(mul, enc1)
+        p = bv.dec(r, sk)
+        self.assertEqual(bv.one, p)
 
-        c = bv.enc(m1, pk)
-        with Timer() as t:
-            p = bv.dec(c, sk)
-        print('time to do dec %s ms'%t.msecs)
+    def test_bin_to_unary(self):
+        bv = BV(n = 10, q = 2**80, t = 20, sigma= 1)
+        (sk,pk) = bv.genkey()
+        cbin = bv.enc(bv.one,pk)
+        cbin1 = bv.map_to_j(cbin,1)
+        decbin1 = bv.dec(cbin1,sk)
+        self.assertEqual(decbin1[1],1)
+        cbin = bv.enc(bv.zeros, pk)
+        cbin1 = bv.map_to_j(cbin,1)
+        decbin1 = bv.dec(cbin1, sk)
+        self.assertEqual(decbin1[0], 1)
+        cbin = bv.enc(bv.one, pk)
+        cbin2 = bv.map_to_j(cbin, 2)
+        decbin2 = bv.dec(cbin2, sk)
+        self.assertEqual(decbin2[2], 1)
+        cbin = bv.enc(bv.zeros, pk)
+        cbin2 = bv.map_to_j(cbin, 2)
+        decbin2 = bv.dec(cbin2, sk)
+        self.assertEqual(decbin2[0], 1)
 
+    def test_basic_mult_property(self):
+        bv = BV(n = 10, q = 2**80, t = 20, sigma= 1)
+        (sk,pk) = bv.genkey()
+        m = bv.small_samples()
+        c = bv.enc(m, sk)
+        one = bv.enc(bv.one, pk)
+        zero = bv.enc(bv.zeros, pk)
+        # multiplying with one
+        p1 = bv.mult(c, one)
+        p2 = bv.mult(one, c)
+        r1 = bv.dec(p1, sk)
+        r2 = bv.dec(p2, sk)
+        self.assertEqual(r1, r2)
 
+        # mutliplying with zero
+        p1 = bv.mult(c, zero)
+        r1 = bv.dec(p1, sk)
+        self.assertEqual(r1, bv.zeros)
+        p1 = bv.mult(zero, c)
+        r1 = bv.dec(p1, sk)
+        self.assertEqual(r1, bv.zeros)
 
+        # commutative
+        m1 = bv.small_samples()
+        m2 = bv.small_samples()
         c1 = bv.enc(m1, pk)
         c2 = bv.enc(m2, pk)
+        c_sum_1 = bv.add(c1, c2)
+        c_sum_2 = bv.add(c2, c1)
+        self.assertEqual(bv.dec(c_sum_1,sk),bv.dec(c_sum_2,sk))
+        c_mult_1 = bv.mult(c1, c2)
+        c_mult_2 = bv.mult(c2, c1)
+        self.assertEqual(bv.dec(c_mult_1,sk),bv.dec(c_mult_2,sk))
 
-        with Timer() as t:
-            p = bv.mult(c1, c2)
-        print('time to do homo multi %s ms'%t.msecs)
+    # def test_poly_mult_time(self):
+    #     bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)
+    #     m1 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
+    #     m2 = Rq(n = bv.n, q = bv.t, coeffs=large_samples(bv.n, bv.t))
+    #     with Timer() as t:
+    #         poly_multiply(m1,m2)
+    #     print('time to do poly multiply %s ms'%t.msecs)
+    #     (sk,pk) = bv.genkey()
+    #
+    #     with Timer() as t:
+    #         c = bv.enc(m1, pk)
+    #     print('time to do enc %s ms'%t.msecs)
+    #
+    #     c = bv.enc(m1, pk)
+    #     with Timer() as t:
+    #         p = bv.dec(c, sk)
+    #     print('time to do dec %s ms'%t.msecs)
+    #
+    #
+    #
+    #     c1 = bv.enc(m1, pk)
+    #     c2 = bv.enc(m2, pk)
+    #
+    #     with Timer() as t:
+    #         p = bv.mult(c1, c2)
+    #     print('time to do homo multi %s ms'%t.msecs)
+    #
+    #     def do_test():
+    #         bv.mult(c1, c2)
 
-        def do_test():
-            bv.mult(c1, c2)
-
-        # cProfile.runctx('do_test()', None, locals(), filename='test_enc')
 
 
 
