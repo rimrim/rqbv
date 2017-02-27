@@ -238,13 +238,13 @@ class BV(object):
     def small_samples(self):
         """return a Rq element"""
         temp = small_samples(self.n, self.sigma)
-        ret = Rq(self.n, self.t, temp)
+        ret = Rq(self.n, self.q, temp)
         return ret
 
     def large_samples(self):
         """return a ring element"""
-        temp = large_samples(self.n, self.t)
-        ret = Rq(self.n, self.t, temp)
+        temp = large_samples(self.n, self.q)
+        ret = Rq(self.n, self.q, temp)
         return ret
 
     def genkey(self):
@@ -312,7 +312,7 @@ class BV(object):
         for i, j in zip(c, s):
             temp = temp + i * j
 
-        # print(temp)
+        # print(self.q/max(temp))
         # break here to see how large the error is
         for i, j in enumerate(temp):
             temp[i] = modmath(j, self.t)
@@ -341,10 +341,10 @@ class BV(object):
         return temp
 
     def mult(self, c1, c2):
-        if len(c1) != len(c2):
-            self.pad_ring(c1, c2)
+        # if len(c1) != len(c2):
+        #     self.pad_ring(c1, c2)
         # degree of the cross product result
-        N = 2 * (len(c1) - 1)
+        N = len(c1) + len(c2) -2
         temp = []
         # append the first item
         temp.append(c1[0] * c2[0])
@@ -479,4 +479,15 @@ class BV(object):
         # c1 = self.enc(c11,self.pk)
         mult = self.mult(c, c1)
         return self.add(mult, c2)
+
+    def bin_tree_mult(self, c_list):
+        temp = c_list
+        l = len(temp)
+        while (l != 1):
+            for i,j in enumerate(temp):
+                if i != (l-1-i):
+                    temp[i] = self.mult(temp[i],temp[l-1-i])
+                    temp.remove(temp[l-1-i])
+            l = len(temp)
+        return temp[0]
 

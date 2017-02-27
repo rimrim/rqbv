@@ -516,7 +516,7 @@ class TestBV(TestCase):
         self.assertEqual(bv.one, p)
 
     def test_bin_to_unary(self):
-        bv = BV(n = 10, q = 2**80, t = 20, sigma= 1)
+        bv = BV(n = 10, q = 2**60, t = 20, sigma= 1)
         (sk,pk) = bv.genkey()
         cbin = bv.enc(bv.one,pk)
         cbin1 = bv.map_to_j(cbin,1)
@@ -589,27 +589,58 @@ class TestBV(TestCase):
         self.assertEqual(bv.dec(term1,sk),bv.dec(term2,sk))
 
     def test_many_multiplication(self):
-        bv = BV(n=20, q=2 ** 100, t=40, sigma=3)
+        bv = BV(n=10, q=2 ** 80, t=20, sigma=2)
         (sk, pk) = bv.genkey()
-        m1 = bv.small_samples()
-        m2 = bv.small_samples()
-        m3 = bv.small_samples()
-        m4 = bv.small_samples()
+        m1 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m2 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m3 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m4 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m5 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m6 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+
 
         c1 = bv.enc(m1, pk)
         c2 = bv.enc(m2, pk)
         c3 = bv.enc(m3, pk)
         c4 = bv.enc(m4, pk)
-        p1 = bv.mult(c1,c2)
-        p2 = bv.mult(c3,c4)
-        p3 = bv.mult(p1,p2)
-        plain = bv.dec(p3,sk)
-        self.assertEqual(m1*m2*m3*m4,plain)
-        p1 = bv.mult(c1,c2)
-        p2 = bv.mult(p1,c3)
-        p3 = bv.mult(p2,c4)
-        plain = bv.dec(p3, sk)
-        self.assertEqual(m1 * m2 * m3 * m4, plain)
+        c5 = bv.enc(m5, pk)
+        c6 = bv.enc(m6, pk)
+
+        #check noise when multiply by bin tree
+        with Timer() as ti:
+            p1 = bv.mult(c1,c2)
+            p2 = bv.mult(c3,c4)
+            p3 = bv.mult(p1,p2)
+            p4 = bv.mult(p3,c5)
+            p5 = bv.mult(p4,c6)
+        # print('time to seq mul %s ms'%ti.msecs)
+        plain = bv.dec(p5,sk)
+        self.assertEqual(m1*m2*m3*m4*m5*m6,plain)
+
+        #check noise when multiply one by one
+        with Timer() as ti:
+            p1 = bv.mult(c1,c2)
+            p2 = bv.mult(p1,c3)
+            p3 = bv.mult(p2,c4)
+            p4 = bv.mult(p3,c5)
+            p5 = bv.mult(p4,c6)
+        # print('time to bin mul manually %s ms'%ti.msecs)
+        plain = bv.dec(p5, sk)
+        self.assertEqual(m1 * m2 * m3 * m4 * m5 * m6, plain)
+
+        c = [c1,c2,c3,c4,c5,c6]
+        with Timer() as ti:
+            p = bv.bin_tree_mult(c)
+        # print('time to bin mul %s ms'%ti.msecs)
+        plain = bv.dec(p, sk)
+        self.assertEqual(m1 * m2 * m3 * m4 * m5 * m6, plain)
+
+        c = [c1, c2, c3, c4, c5]
+        with Timer() as ti:
+            p = bv.bin_tree_mult(c)
+        # print('time to bin mul %s ms' % ti.msecs)
+        plain = bv.dec(p, sk)
+        self.assertEqual(m1 * m2 * m3 * m4 * m5, plain)
 
     # def test_poly_mult_time(self):
     #     bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)
