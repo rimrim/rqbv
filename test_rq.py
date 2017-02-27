@@ -557,17 +557,59 @@ class TestBV(TestCase):
         r1 = bv.dec(p1, sk)
         self.assertEqual(r1, bv.zeros)
 
-        # commutative
         m1 = bv.small_samples()
         m2 = bv.small_samples()
+        m3 = bv.small_samples()
         c1 = bv.enc(m1, pk)
         c2 = bv.enc(m2, pk)
+        c3 = bv.enc(m3, pk)
+
+        # commutative
         c_sum_1 = bv.add(c1, c2)
         c_sum_2 = bv.add(c2, c1)
         self.assertEqual(bv.dec(c_sum_1,sk),bv.dec(c_sum_2,sk))
         c_mult_1 = bv.mult(c1, c2)
         c_mult_2 = bv.mult(c2, c1)
         self.assertEqual(bv.dec(c_mult_1,sk),bv.dec(c_mult_2,sk))
+
+        #associative
+        c_sum_3 = bv.add(c_sum_1,c3)
+        c_sum_4 = bv.add(c2, c3)
+        c_sum_5 = bv.add(c1, c_sum_4)
+        self.assertEqual(bv.dec(c_sum_3,sk),bv.dec(c_sum_5,sk))
+        c_pro_3 = bv.mult(c_mult_1, c3)
+        c_pro_4 = bv.mult(c2, c3)
+        c_pro_5 = bv.mult(c1, c_pro_4)
+        self.assertEqual(bv.dec(c_pro_3,sk),bv.dec(c_pro_5,sk))
+
+        #distributive
+        #c1(c2+c3) = c1.c2 + c1.c3
+        term1 = bv.mult(c1, bv.add(c2,c3))
+        term2 = bv.add(bv.mult(c1,c2),bv.mult(c1,c3))
+        self.assertEqual(bv.dec(term1,sk),bv.dec(term2,sk))
+
+    def test_many_multiplication(self):
+        bv = BV(n=20, q=2 ** 100, t=40, sigma=3)
+        (sk, pk) = bv.genkey()
+        m1 = bv.small_samples()
+        m2 = bv.small_samples()
+        m3 = bv.small_samples()
+        m4 = bv.small_samples()
+
+        c1 = bv.enc(m1, pk)
+        c2 = bv.enc(m2, pk)
+        c3 = bv.enc(m3, pk)
+        c4 = bv.enc(m4, pk)
+        p1 = bv.mult(c1,c2)
+        p2 = bv.mult(c3,c4)
+        p3 = bv.mult(p1,p2)
+        plain = bv.dec(p3,sk)
+        self.assertEqual(m1*m2*m3*m4,plain)
+        p1 = bv.mult(c1,c2)
+        p2 = bv.mult(p1,c3)
+        p3 = bv.mult(p2,c4)
+        plain = bv.dec(p3, sk)
+        self.assertEqual(m1 * m2 * m3 * m4, plain)
 
     # def test_poly_mult_time(self):
     #     bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)

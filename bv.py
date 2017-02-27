@@ -238,13 +238,13 @@ class BV(object):
     def small_samples(self):
         """return a Rq element"""
         temp = small_samples(self.n, self.sigma)
-        ret = Rq(self.n, self.q, temp)
+        ret = Rq(self.n, self.t, temp)
         return ret
 
     def large_samples(self):
         """return a ring element"""
-        temp = large_samples(self.n, self.q)
-        ret = Rq(self.n, self.q, temp)
+        temp = large_samples(self.n, self.t)
+        ret = Rq(self.n, self.t, temp)
         return ret
 
     def genkey(self):
@@ -312,6 +312,7 @@ class BV(object):
         for i, j in zip(c, s):
             temp = temp + i * j
 
+        # print(temp)
         # break here to see how large the error is
         for i, j in enumerate(temp):
             temp[i] = modmath(j, self.t)
