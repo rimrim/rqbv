@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
 import cProfile
+from math import floor
+from math import log
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, modmath, \
@@ -515,6 +517,89 @@ class TestBV(TestCase):
         p = bv.dec(r, sk)
         self.assertEqual(bv.one, p)
 
+    def test_negative_hd(self):
+        bv = BV(n=30, q=2 ** 80, t=30, sigma=1)
+        (sk, pk) = bv.genkey()
+        hd = small_samples(bv.t, bv.sigma)
+        hd[0] = 17
+        hd = Rq(bv.n, bv.t, hd)
+
+        enc_hd = bv.enc(hd, pk)
+        pos = bv.dec(enc_hd,sk)
+        enc_minus_hd = bv.sub([bv.zeros,bv.zeros],enc_hd)
+        neg = bv.dec(enc_minus_hd,sk)
+        self.assertEqual(pos[0],-neg[0])
+
+    def test_HD_by_mult(self):
+        bv = BV(n=30, q=2 ** 80, t=30, sigma=1)
+        (sk,pk) = bv.genkey()
+        hd = 17
+        l = floor(log(hd, 2)) - 1
+        #decompose into bints
+        hd_bits = bv.bit_repr(hd,l).to01()
+        # print(hd_bits)
+        list_bits = []
+        for i, j in enumerate(hd_bits):
+            temp = [0 for _ in range(bv.n)]
+            temp[0] = int(hd_bits[i])
+            list_bits.append(Rq(n=bv.n, q=bv.q, coeffs=temp))
+
+        enc_b = []
+        for i in list_bits:
+            C_i = bv.enc(i, pk)
+            enc_b.append(C_i)
+
+        #converting
+        enc_x_pow_jb = []
+        for i,j in enumerate(enc_b):
+            c = bv.map_to_j(enc_b[i],2**i)
+            enc_x_pow_jb.append(c)
+
+        # #multiply them together
+        enc_hd = bv.bin_tree_mult(enc_x_pow_jb)
+        plain = bv.unary_decode((bv.dec(enc_hd,sk)))
+        self.assertEqual(plain, hd)
+
+    def test_negative_HD_by_mult(self):
+        bv = BV(n=50, q=2 ** 80, t=50, sigma=1)
+        (sk, pk) = bv.genkey()
+        hd = 17
+        l = floor(log(hd, 2)) - 1
+        # decompose into bins
+        hd_bits = bv.bit_repr(hd, l).to01()
+        print(hd_bits)
+        list_bits = []
+        for i, j in enumerate(hd_bits):
+            temp = [0 for _ in range(bv.n)]
+            temp[0] = -int(hd_bits[i])
+            list_bits.append(Rq(n=bv.n, q=bv.q, coeffs=temp))
+
+        enc_b = []
+        for i in list_bits:
+            C_i = bv.enc(i, pk)
+            enc_b.append(C_i)
+
+        # converting
+        enc_x_pow_jb = []
+        for i, j in enumerate(enc_b):
+            c = bv.map_to_j_neg(enc_b[i], 2 ** i)
+            enc_x_pow_jb.append(c)
+
+        # #multiply them together
+        enc_hd = bv.bin_tree_mult(enc_x_pow_jb)
+        plain = bv.dec(enc_hd,sk)
+        print(plain)
+        # print(bv.unary_decode(plain))
+        # plain = bv.unary_decode((bv.dec(enc_hd, sk)))
+        # self.assertEqual(plain, hd)
+
+        Co = bv.unary_encode(41)
+        Enc_co = bv.enc(Co, pk)
+        mult = bv.mult(Enc_co, enc_hd)
+        plain = bv.dec(mult, sk)
+        print(bv.unary_decode(plain))
+
+
     def test_bin_to_unary(self):
         bv = BV(n = 10, q = 2**60, t = 20, sigma= 1)
         (sk,pk) = bv.genkey()
@@ -534,6 +619,34 @@ class TestBV(TestCase):
         cbin2 = bv.map_to_j(cbin, 2)
         decbin2 = bv.dec(cbin2, sk)
         self.assertEqual(decbin2[0], 1)
+
+
+
+    def test_map_to_minus_j_power(self):
+        bv = BV(n=10, q=2 ** 60, t=20, sigma=1)
+        (sk, pk) = bv.genkey()
+        m_one = list(bv.one)
+        m_one[0] = 0
+        cbin = bv.enc(m_one,pk)
+        cbin1 = bv.map_to_j_neg(cbin, 1)
+        plain = bv.dec(cbin1,sk)
+        self.assertEqual(plain[0], 1)
+        m_one[0] = -1
+        cbin = bv.enc(m_one, pk)
+        cbin1 = bv.map_to_j_neg(cbin, 1)
+        plain = bv.dec(cbin1, sk)
+        self.assertEqual(plain[bv.n-1], -1)
+        m_one[0] = 0
+        cbin = bv.enc(m_one, pk)
+        cbin1 = bv.map_to_j_neg(cbin, 4)
+        plain = bv.dec(cbin1, sk)
+        self.assertEqual(plain[0], 1)
+        m_one[0] = -1
+        cbin = bv.enc(m_one, pk)
+        cbin1 = bv.map_to_j_neg(cbin, 4)
+        plain = bv.dec(cbin1, sk)
+        self.assertEqual(plain[bv.n - 4], -1)
+
 
     def test_basic_mult_property(self):
         bv = BV(n = 10, q = 2**80, t = 20, sigma= 1)
@@ -588,6 +701,34 @@ class TestBV(TestCase):
         term2 = bv.add(bv.mult(c1,c2),bv.mult(c1,c3))
         self.assertEqual(bv.dec(term1,sk),bv.dec(term2,sk))
 
+    def test_noise_growth(self):
+        bv = BV(n=100, q=2 ** 80, t=2000, sigma=2)
+        (sk, pk) = bv.genkey()
+        m1 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+        m2 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+        m3 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+        m4 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+        m5 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+        m6 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
+
+        c1 = bv.enc(m1, pk)
+        p1 = bv.dec(c1, sk)
+        # print('noise for 1 fresh ciphertext %s'%bv.last_noise)
+        c2 = bv.enc(m2, pk)
+        mult1 = bv.mult(c1,c2)
+        dec_mult1 = bv.dec(mult1, sk)
+        # print('noise for 1st level of mult %s'%bv.last_noise)
+
+        c3 = bv.enc(m3, pk)
+        mult2 = bv.mult(mult1, c3)
+        dec_mult2 = bv.dec(mult2, sk)
+        # print('noise for 1 extra mult %s'%bv.last_noise)
+        # print('q is %s'%bv.q)
+
+        c4 = bv.enc(m4, pk)
+        c5 = bv.enc(m5, pk)
+        c6 = bv.enc(m6, pk)
+
     def test_many_multiplication(self):
         bv = BV(n=10, q=2 ** 80, t=20, sigma=2)
         (sk, pk) = bv.genkey()
@@ -641,6 +782,8 @@ class TestBV(TestCase):
         # print('time to bin mul %s ms' % ti.msecs)
         plain = bv.dec(p, sk)
         self.assertEqual(m1 * m2 * m3 * m4 * m5, plain)
+
+
 
     # def test_poly_mult_time(self):
     #     bv = BV(n = 100, q = 2**50, t = 500, sigma= 5)

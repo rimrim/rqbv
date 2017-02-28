@@ -1,3 +1,4 @@
+from bitarray import bitarray
 from random import randint
 
 # note: it's hard to install scipy on windows
@@ -313,6 +314,7 @@ class BV(object):
             temp = temp + i * j
 
         # print(self.q/max(temp))
+        self.last_noise = max(temp)
         # break here to see how large the error is
         for i, j in enumerate(temp):
             temp[i] = modmath(j, self.t)
@@ -445,22 +447,10 @@ class BV(object):
         t = modmath(t, self.t)
         return t
 
-    def map_to_j1(self, c):
+    def map_to_j_neg(self, c, j):
         c11 = [0 for _ in range(self.n)]
-        c11[0] = -1
-        c11[1] = 1
-        c11 = Rq(self.n, self.t, c11)
-        # c1 = self.enc(c11,self.pk)
-        c2 = [self.one,self.zeros]
-        c1 = [c11, self.zeros]
-        mult = self.mult(c,c1)
-        add = self.add(mult, c2)
-        return add
-
-    def map_to_j2(self, c):
-        c11 = [0 for _ in range(self.n)]
-        c11[0] = -1
-        c11[2] = 1
+        c11[0] = 1
+        c11[self.n - j] = 1
         c11 = Rq(self.n, self.t, c11)
         # c1 = self.enc(c11,self.pk)
         c2 = [self.one,self.zeros]
@@ -490,4 +480,10 @@ class BV(object):
                     temp.remove(temp[l-1-i])
             l = len(temp)
         return temp[0]
+
+    def bit_repr(self, x, d):
+        """Represent number x using d bits"""
+        bit_decomp = bin(x)[2:].zfill(d)[::-1]
+        ret = bitarray(bit_decomp)
+        return ret
 
