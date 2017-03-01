@@ -456,13 +456,11 @@ class TestBV(TestCase):
 
     def test_msb_extract2(self):
         bv = BV(n=100, t=100, q=2**100, sigma=1)
-        x = 101
+        x = 90
         m = bv.unary_encode(x)
         # print(m)
         (sk, pk) = bv.genkey()
         c = bv.enc(m, pk)
-        print(bv.dec(c,sk))
-        # print(plain_m)
         lwe_c = bv.to_lwe(c)
         # print(lwe_c)
         plain = bv.decrypt_lwe(lwe_c, sk)
@@ -580,7 +578,7 @@ class TestBV(TestCase):
         l = floor(log(hd, 2)) - 1
         # decompose into bins
         hd_bits = bv.bit_repr(hd, l).to01()
-        print(hd_bits)
+        # print(hd_bits)
         list_bits = []
         for i, j in enumerate(hd_bits):
             temp = [0 for _ in range(bv.n)]
@@ -601,7 +599,7 @@ class TestBV(TestCase):
         # #multiply them together
         enc_hd = bv.bin_tree_mult(enc_x_pow_jb)
         plain = bv.dec(enc_hd,sk)
-        print(plain)
+        # print(plain)
         # print(bv.unary_decode(plain))
         # plain = bv.unary_decode((bv.dec(enc_hd, sk)))
         # self.assertEqual(plain, hd)
@@ -610,7 +608,6 @@ class TestBV(TestCase):
         Enc_co = bv.enc(Co, pk)
         mult = bv.mult(Enc_co, enc_hd)
         plain = bv.dec(mult, sk)
-        print(bv.unary_decode(plain))
 
 
     def test_bin_to_unary(self):
@@ -795,6 +792,49 @@ class TestBV(TestCase):
         # print('time to bin mul %s ms' % ti.msecs)
         plain = bv.dec(p, sk)
         self.assertEqual(m1 * m2 * m3 * m4 * m5, plain)
+
+    def test_rot_mult_1(self):
+        bv = BV(n=100, q=2 ** 100, t=100, sigma=2)
+        (sk, pk) = bv.genkey()
+        one = Rq(n=bv.n, q = bv.q, coeffs=list(bv.one))
+        another_one = Rq(n=bv.n, q = bv.q, coeffs=list(bv.one))
+        extra_one = Rq(n=bv.n, q = bv.q, coeffs=list(bv.one))
+
+
+        c_one = bv.enc(one, pk)
+        c_another_one = bv.enc(another_one, pk)
+        c_extra_one = bv.enc(extra_one, pk)
+
+
+        cmul = bv.mult(c_one, c_another_one)
+        cmul = bv.mult(cmul, c_extra_one)
+
+
+        # rot_1 = cmul[0].rot_matrix()
+        # l0 = Rq.vec_mult_matrix(bv.all_one, rot_1,bv.q)
+        # l0 = Rq(n=bv.n, q =bv.q, coeffs=l0)[0]
+        #
+        # rot_2 = cmul[1].rot_matrix()
+        # l1 = Rq.vec_mult_matrix(bv.all_one, rot_2, bv.q)
+        # l1 = Rq(n=bv.n, q =bv.q, coeffs=l1)
+        #
+        # rot_3 = cmul[2].rot_matrix()
+        # l2 = Rq.vec_mult_matrix(bv.all_one, rot_3, bv.q)
+        # l2 = Rq(n=bv.n, q =bv.q, coeffs=l2)
+        #
+        # rot_4 = cmul[3].rot_matrix()
+        # l3 = Rq.vec_mult_matrix(bv.all_one, rot_4, bv.q)
+        # l3 = Rq(n=bv.n, q=bv.q, coeffs=l3)
+
+
+        # c = [l0, l1, l2, l3]
+
+        c = bv.to_lwe_generic(cmul)
+
+        plain = bv.decrypt_lwe_generic(c, sk)
+        self.assertEqual(plain%2,1)
+        # print(bv.last_noise)
+        # print(rot_1)
 
 
 

@@ -11,11 +11,12 @@ def bit_repr(x, d):
     return ret
 
 n = 100
-q = 2**150
+q = 2**100
 sigma = 1
 t = 100
 l = floor(log(t, 2)) - 1
-tau = 30
+#change threshold to check authentication result
+tau = 20
 
 #Time to compute HD
 bv = BV(n = n, t = t, q = q, sigma= sigma)
@@ -95,19 +96,17 @@ with Timer() as ti:
     mult_term = bv.mult(enc_term2, enc_term3)
     mult_term2 = bv.mult(mult_term, enc_term1)
 print('time for server to compute Enc(2^l + t - HD) is %s'%ti.msecs)
-print(bv.dec(mult_term2,sk))
-comp = bv.unary_decode(bv.dec(mult_term2,sk))
-print(comp)
-# print(bit_repr(comp,l+1))
 
-comp = bv.unary_encode(comp)
-print(comp)
-compC = bv.enc(comp,pk)
-# #Extract the MSB
-lwec = bv.to_lwe(compC)
 
-dec_lwe = bv.decrypt_lwe(lwec,sk)
-print(dec_lwe)
+with Timer() as ti:
+    c_msb = bv.to_lwe_generic(mult_term2)
+print('time for server to compute Enc(MSB) is %s ms'%ti.msecs)
+
+with Timer() as ti:
+    msb = bv.decrypt_lwe_generic(c_msb, sk)
+print('time for client to decrypt MSB is %s ms'%ti.msecs)
+
+print(bit_repr(bv.unary_decode(bv.dec(mult_term2,sk)),l+1))
 
 
 #

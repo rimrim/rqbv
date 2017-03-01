@@ -445,6 +445,28 @@ class BV(object):
         t = modmath(t, self.t)
         return t
 
+    def to_lwe_generic(self, c):
+        ret = []
+        for i in c:
+            rot = i.rot_matrix()
+            temp = Rq.vec_mult_matrix(self.all_one, rot, self.q)
+            ret.append(temp)
+        ret[0] = ret[0][0]
+        return ret
+
+    def decrypt_lwe_generic(self, c, sk):
+        """when c has more than 2 terms
+        """
+        temp = c[0]
+        for i in range(1,len(c)):
+            temp = temp + Rq.inner_product(c[i],sk**i, self.q)
+        # t = Rq.inner_product(c[2],sk**2, self.q) + Rq.inner_product(c[1],sk**1, self.q) + c[0]
+        # print('before denoise %r',t)
+        t = modmath(temp, self.q)
+        self.last_noise = t
+        t = modmath(temp, self.t)
+        return t
+
     def map_to_j_neg(self, c, j):
         c11 = [0 for _ in range(self.n)]
         c11[0] = 1
