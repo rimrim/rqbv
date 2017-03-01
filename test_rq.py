@@ -448,12 +448,25 @@ class TestBV(TestCase):
         # print(m)
         (sk, pk) = bv.genkey()
         c = bv.enc(m, pk)
-        plain_m = bv.dec(c, sk)
         # print(plain_m)
         lwe_c = bv.to_lwe(c)
         # print(lwe_c)
         plain = bv.decrypt_lwe(lwe_c, sk)
         self.assertEqual(plain,-1)
+
+    def test_msb_extract2(self):
+        bv = BV(n=100, t=100, q=2**100, sigma=1)
+        x = 101
+        m = bv.unary_encode(x)
+        # print(m)
+        (sk, pk) = bv.genkey()
+        c = bv.enc(m, pk)
+        print(bv.dec(c,sk))
+        # print(plain_m)
+        lwe_c = bv.to_lwe(c)
+        # print(lwe_c)
+        plain = bv.decrypt_lwe(lwe_c, sk)
+        self.assertEqual(plain,1)
 
     def test_add_matrix(self):
         m1 = [[1, 1, 1], [2, 2, 2], [3, 3, 3]]
@@ -702,7 +715,7 @@ class TestBV(TestCase):
         self.assertEqual(bv.dec(term1,sk),bv.dec(term2,sk))
 
     def test_noise_growth(self):
-        bv = BV(n=100, q=2 ** 80, t=2000, sigma=2)
+        bv = BV(n=100, q=2 ** 80, t=1000, sigma=4)
         (sk, pk) = bv.genkey()
         m1 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
         m2 = Rq(bv.n, bv.t, small_samples(bv.t, bv.sigma))
@@ -713,16 +726,16 @@ class TestBV(TestCase):
 
         c1 = bv.enc(m1, pk)
         p1 = bv.dec(c1, sk)
-        # print('noise for 1 fresh ciphertext %s'%bv.last_noise)
+        print('noise for 1 fresh ciphertext %s'%bv.last_noise)
         c2 = bv.enc(m2, pk)
         mult1 = bv.mult(c1,c2)
         dec_mult1 = bv.dec(mult1, sk)
-        # print('noise for 1st level of mult %s'%bv.last_noise)
+        print('noise for 1st level of mult %s'%bv.last_noise)
 
         c3 = bv.enc(m3, pk)
         mult2 = bv.mult(mult1, c3)
         dec_mult2 = bv.dec(mult2, sk)
-        # print('noise for 1 extra mult %s'%bv.last_noise)
+        print('noise for 1 extra mult %s'%bv.last_noise)
         # print('q is %s'%bv.q)
 
         c4 = bv.enc(m4, pk)

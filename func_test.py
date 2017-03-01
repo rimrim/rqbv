@@ -10,13 +10,12 @@ def bit_repr(x, d):
     ret = bitarray(bit_decomp)
     return ret
 
-n = 80
-q = 2**140
-sigma = 3
-t = 150
+n = 100
+q = 2**150
+sigma = 1
+t = 100
 l = floor(log(t, 2)) - 1
-tau = 5
-print('2^l + tau is %s'%(2**l + tau))
+tau = 30
 
 #Time to compute HD
 bv = BV(n = n, t = t, q = q, sigma= sigma)
@@ -54,18 +53,17 @@ print('time for server to add masking is %s ms'%ti.msecs)
 #decrypt HD Masked
 with Timer() as ti:
     plain_hd = bv.dec(C_HDMask, sk)[0]
-    plain_hd = plain_hd % t
 
 print('time for client to decrypt HD is %s ms '%ti.msecs)
 print('plain (- hd masked) is %s '%plain_hd)
-
+plain_hd = -plain_hd
 #bits encryption
 bits = bit_repr(plain_hd, l).to01()
-print('bit representation of (-HDMask) is %s'%bits)
+print('bit representation of (-HDMask) is -%s'%bits)
 list_bits = []
 for i,j in enumerate(bits):
     temp = [0 for _ in range(n)]
-    temp[0] = int(bits[i])
+    temp[0] = -int(bits[i])
     list_bits.append(Rq(n = n, q = t, coeffs=temp))
 enc_b = []
 with Timer() as ti:
@@ -74,37 +72,46 @@ with Timer() as ti:
         enc_b.append(C_i)
 print('time for client to encrypt %s ciphertext is %s ms'%(len(bits),ti.msecs))
 #
-#convert from Enc(b_i) to Enc(x^jb_i)
+#convert from Enc(-b_i) to Enc(x^-jb_i)
 enc_b2 = []
 with Timer() as ti:
     for i,j in enumerate(enc_b):
-        c = bv.map_to_j(j, 2**i)
+        c = bv.map_to_j_neg(j, 2**i)
         enc_b2.append(c)
-print('time for server to convert the ciphertexts from Enc(b) to Enc(x^jb) is %s ms'%ti.msecs)
+print('time for server to convert the ciphertexts from Enc(-b) to Enc(x^-jb) is %s ms'%ti.msecs)
 
-#Compute x^HD by homomorphic multiplications
+#Compute x^-HD by homomorphic multiplications
 with Timer() as ti:
     hdm = bv.bin_tree_mult(enc_b2)
 print('time for server to compute x^-HDMask is %s ms'%ti.msecs)
 
 #Compute x^2l + tau + x^-HDM + x^r
 term1 = bv.unary_encode(2**l + tau)
-enc_term2 = hdm
 term3 = bv.unary_encode(r[0])
-enc_term1 = bv.enc(term1, pk)
-enc_term3 = bv.enc(term3, pk)
-
-
-print(bv.unary_decode(bv.dec(enc_term1,sk)))
-print(bv.unary_decode(bv.dec(enc_term2,sk)))
-print(bv.unary_decode(bv.dec(enc_term3,sk)))
-
-
-terms = [enc_term1,enc_term3]
-mult_term = bv.bin_tree_mult(terms)
-comp = bv.unary_decode(bv.dec(mult_term,sk))
+with Timer() as ti:
+    enc_term1 = bv.enc(term1, pk)
+    enc_term2 = hdm
+    enc_term3 = bv.enc(term3, pk)
+    mult_term = bv.mult(enc_term2, enc_term3)
+    mult_term2 = bv.mult(mult_term, enc_term1)
+print('time for server to compute Enc(2^l + t - HD) is %s'%ti.msecs)
+print(bv.dec(mult_term2,sk))
+comp = bv.unary_decode(bv.dec(mult_term2,sk))
 print(comp)
-print(bit_repr(comp, 7))
+# print(bit_repr(comp,l+1))
+
+comp = bv.unary_encode(comp)
+print(comp)
+compC = bv.enc(comp,pk)
+# #Extract the MSB
+lwec = bv.to_lwe(compC)
+
+dec_lwe = bv.decrypt_lwe(lwec,sk)
+print(dec_lwe)
+
+
+#
+# print(bit_repr(comp, 7))
 
 #
 # #Time to compute MSB

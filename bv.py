@@ -73,8 +73,6 @@ class Rq(list):
     """
     notes: can't asign a list to a Rq object, eg a = [1,2,3]
     """
-    n = 3
-    q = 5
 
     def __init__(self, n=3, q=5, coeffs=[]):
         self.n = n
