@@ -7,9 +7,6 @@ from scipy.fftpack import fft, ifft
 from scipy import signal
 from numpy import real, base_repr, convolve
 
-from timer import Timer
-
-
 def modmath(a, b):
     # type: (int, int) -> int
     c = a % b
@@ -306,24 +303,9 @@ class BV(object):
 
         # compute a new sesssion key (a mask) from public
         # key and encrypt it with the new generated mask
+        c_0 = pk[0] * u + self.t * g + m
+        c_1 = pk[1] * u + self.t * f
 
-        with Timer() as ti:
-            c_0 = pk[0] * u
-        print('time to enc c0 %s' % ti.msecs)
-
-        c_0 = c_0 + self.t * g + m
-
-        with Timer() as ti:
-            c_1 = pk[1] * u + self.t * f
-        print('time to enc c1 %s' % ti.msecs)
-
-        # t00 = pk[0]*u
-        # t01 = self.t*g
-        # c_0 = t00 + t01 + m
-        #
-        # t10 = pk[1]*u
-        # t11 = self.t*f
-        # c_1 = t10 + t11
 
         #debug
         # print('original c_0 %r',c_0)
