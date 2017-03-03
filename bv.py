@@ -1,9 +1,13 @@
+import numpy
 from bitarray import bitarray
 from random import randint
 
 # note: it's hard to install scipy on windows
 from scipy.fftpack import fft, ifft
+from scipy import signal
 from numpy import real, base_repr, convolve
+
+from timer import Timer
 
 
 def modmath(a, b):
@@ -37,7 +41,10 @@ def rot(a):
 def poly_multiply(a, b):
     """multiply 2 polynomials using DFT"""
 
+
     return list(convolve(a,b))
+    # return list(int(round(_) for _ in signal.convolve(a,b,'full')))
+    # return numpy.polymul(a,b)
 
 
 def mod_poly(poly, d):
@@ -234,6 +241,8 @@ class BV(object):
         self.one[0] = 1
         self.all_one=Rq(self.n, self.q, [1 for _ in range(self.n)])
 
+
+
     def small_samples(self):
         """return a Rq element"""
         temp = small_samples(self.n, self.sigma)
@@ -259,6 +268,12 @@ class BV(object):
         # for debug purpose only
         self.s = s
         self.pk = (p_0, p_1)
+
+        temp1 = [-1 for _ in range(self.n)]
+        temp1[0] = 1
+        c1 = Rq(n=self.n, q=self.t, coeffs=temp1)
+        self.enc_c1 = self.enc(c1, self.pk)
+        self.enc_c2 = self.enc(self.all_one, self.pk)
 
         #debug
         # print('original p_0 %r'%p_0)
@@ -291,7 +306,24 @@ class BV(object):
 
         # compute a new sesssion key (a mask) from public
         # key and encrypt it with the new generated mask
-        (c_0, c_1) = (pk[0] * u + self.t * g + m, pk[1] * u + self.t * f)
+
+        with Timer() as ti:
+            c_0 = pk[0] * u
+        print('time to enc c0 %s' % ti.msecs)
+
+        c_0 = c_0 + self.t * g + m
+
+        with Timer() as ti:
+            c_1 = pk[1] * u + self.t * f
+        print('time to enc c1 %s' % ti.msecs)
+
+        # t00 = pk[0]*u
+        # t01 = self.t*g
+        # c_0 = t00 + t01 + m
+        #
+        # t10 = pk[1]*u
+        # t11 = self.t*f
+        # c_1 = t10 + t11
 
         #debug
         # print('original c_0 %r',c_0)
@@ -383,16 +415,10 @@ class BV(object):
         return Rq(self.n, self.q, ret)
 
     def compute_hd(self, pm1, pm2):
-        temp1 = [-1 for _ in range(self.n)]
-        temp1[0] = 1
-        c1 = Rq(n=self.n, q=self.t, coeffs=temp1)
-        enc_c1 = self.enc(c1, self.pk)
-        temp2 = [1 for _ in range(self.n)]
-        c2 = Rq(n=self.n, q=self.t, coeffs=temp2)
-        enc_c2 = self.enc(c2, self.pk)
 
-        first_part = self.mult(pm1, enc_c1)
-        sec_part = self.mult(pm2, enc_c2)
+
+        first_part = self.mult(pm1, self.enc_c1)
+        sec_part = self.mult(pm2, self.enc_c2)
         third_part = self.mult(pm1, pm2)
 
         ret = self.add(first_part, sec_part)

@@ -1,11 +1,5 @@
 # rqbv
-cryptographers are good at imagination... this module helps new learners that love
-lattice crypto (specifically RLWE) but not yet good at imagination, to
-learn, to see how beautiful they are...
-
-Note that the module is not meant to be used with real world application
-(no, crypto library should be written in C, not python :) )
-
+POC for ASCIP 2017 paper
 
 Basic usage:
 
@@ -54,6 +48,8 @@ BV cryptosystem:
         c_add = bv.add(c1,c2)
 
         c_mult = bv.mult(c1,c2)
+
+    Other operations can be found in the func_test and test_rq
         
 
 

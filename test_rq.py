@@ -740,14 +740,14 @@ class TestBV(TestCase):
         c6 = bv.enc(m6, pk)
 
     def test_many_multiplication(self):
-        bv = BV(n=10, q=2 ** 80, t=20, sigma=2)
+        bv = BV(n=10, q=2 ** 80, t=10, sigma=2)
         (sk, pk) = bv.genkey()
-        m1 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
-        m2 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
-        m3 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
-        m4 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
-        m5 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
-        m6 = Rq(bv.n, bv.t, small_samples(bv.t,bv.sigma))
+        m1 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
+        m2 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
+        m3 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
+        m4 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
+        m5 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
+        m6 = Rq(bv.n, bv.t, small_samples(bv.n,bv.sigma))
 
 
         c1 = bv.enc(m1, pk)

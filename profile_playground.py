@@ -1,25 +1,44 @@
-from bv import BV
+import cProfile
+from cProfile import Profile
+from pstats import Stats
+
+from bv import BV, large_samples, Rq
 from timer import Timer
 
-bv = BV(n=20, q=2 ** 60, t=40, sigma=2)
-(sk, pk) = bv.genkey()
-m1 = bv.small_samples()
-m2 = bv.small_samples()
-m3 = bv.small_samples()
-m4 = bv.small_samples()
-m5 = bv.small_samples()
-m6 = bv.small_samples()
-
-c1 = bv.enc(m1, pk)
-c2 = bv.enc(m2, pk)
-c3 = bv.enc(m3, pk)
-c4 = bv.enc(m4, pk)
-c5 = bv.enc(m5, pk)
-c6 = bv.enc(m6, pk)
-
-c = [c1,c2,c3,c4,c5,c6]
+q = 2**128+1
+n = 10000
+n1 = Rq(n = n, q = q, coeffs=large_samples(n,q))
+n2 = Rq(n = n, q = 2**32+1, coeffs=large_samples(n,q))
 with Timer() as ti:
-    p = bv.bin_tree_mult(c)
-print('time to bin mul %s ms'%ti.msecs)
-plain = bv.dec(p, sk)
-assert(m1 * m2 * m3 * m4 * m5 * m6 == plain)
+    m = n1*n2
+print('time for 1 multiplication for 32 bit Q is %s ms'%ti.msecs)
+n1 = Rq(n = n, q = 2**64-3, coeffs=large_samples(n,q))
+n2 = Rq(n = n, q = 2**64-3, coeffs=large_samples(n,q))
+with Timer() as ti:
+    m = n1*n2
+print('time multiplication for 64 bit Q is %s ms'%ti.msecs)
+n1 = Rq(n = n, q = 2**128+3, coeffs=large_samples(n,q))
+n2 = Rq(n = n, q = 2**128+3, coeffs=large_samples(n,q))
+with Timer() as ti:
+    m = n1*n2
+print('time multiplication for 128 bit Q is %s ms'%ti.msecs)
+with Timer() as ti:
+    m = n1+n2
+print('time addition for 128 bit Q is %s ms'%ti.msecs)
+
+
+bv = BV(n = n, q = 2**128+3, t = n, sigma=3)
+(sk,pk) = bv.genkey()
+with Timer() as ti:
+    temp = pk[0]*n2
+print('time to test %s'%ti.msecs)
+
+
+# def test_enc():
+#     enc_n = bv.enc(n1, pk)
+# profiler = Profile()
+# profiler.runcall(test_enc)
+# stats = Stats(profiler)
+# # stats.print_stats()
+# stats.print_callers()
+# # cProfile.runctx('test_enc()',None,locals(),filename='./test_enc')
