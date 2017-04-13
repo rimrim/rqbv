@@ -1,0 +1,3 @@
+[submodule "finite-fields"]
+	path = finite-fields
+	url = https://github.com/j2kun/finite-fields.git
