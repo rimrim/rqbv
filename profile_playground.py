@@ -5,8 +5,8 @@ from pstats import Stats
 from bv import BV, large_samples, Rq
 from timer import Timer
 
-q = 2**128+1
-n = 10000
+q = 2**62 + 1
+n = 1000
 n1 = Rq(n = n, q = q, coeffs=large_samples(n,q))
 n2 = Rq(n = n, q = 2**32+1, coeffs=large_samples(n,q))
 with Timer() as ti:

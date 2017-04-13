@@ -185,6 +185,12 @@ class Rq(list):
             ret.append(temp)
         return ret
 
+    def evaluate_at(self,x):
+        temp = 0
+        for i,j in enumerate(self):
+            temp = temp + j*(x**i)
+        return modmath(temp,self.q)
+
     @staticmethod
     def add_matrix(a,b,q):
         ret = []

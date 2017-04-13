@@ -836,6 +836,19 @@ class TestBV(TestCase):
         # print(bv.last_noise)
         # print(rot_1)
 
+    def test_double_crt(self):
+        f = [10,20,30]
+        from numpy import fft
+        print(fft.fft(f))
+        g = [50,60,70]
+        n = 3
+        q = 385
+        f = Rq(n,q,f)
+        g = Rq(n, q, g)
+        nttf = [f.evaluate_at(1),f.evaluate_at(221),f.evaluate_at(332)]
+
+        h = f*g
+
 
 
     # def test_poly_mult_time(self):
