@@ -2,44 +2,29 @@ from unittest import TestCase
 import random
 
 
-def IntegersModP(p):
-    class IntegerModP(object):
-        def __init__(self, n):
-            self.n = n % p
-            self.field = IntegerModP
+from modp import IntegersModP
 
-        def __add__(self, other): return IntegerModP(self.n + other.n)
+def output_generator(n):
+    modn = IntegersModP(n)
 
-        def __sub__(self, other): return IntegerModP(self.n - other.n)
-
-        def __mul__(self, other): return IntegerModP(self.n * other.n)
-
-        def __truediv__(self, other): return self * other.inverse()
-
-        def __div__(self, other): return self * other.inverse()
-
-        def __neg__(self): return IntegerModP(-self.n)
-
-        def __eq__(self, other): return isinstance(other, IntegerModP) and self.n == other.n
-
-        def __abs__(self): return abs(self.n)
-
-        def __str__(self): return str(self.n)
-
-        def __repr__(self): return '%d (mod %d)' % (self.n, self.p)
-
-        def __divmod__(self, divisor):
-            q, r = divmod(self.n, divisor.n)
-            return (IntegerModP(q), IntegerModP(r))
-
-        IntegerModP.p = p
-        IntegerModP.__name__ = 'Z/%d' % (p)
-        return IntegerModP
+    for i in range(2,n):
+        l = [0] * n
+        for j in range(n):
+            ind = modn(i)**j
+            ind = int(ind)
+            l[ind] = 1
+        count = 0
+        for k in l:
+            if k == 1:
+                count=count+1
+        if count == n-1:
+            return i
 
 class Prover(object):
     def __init__(self, g, n, x):
         self.g = g
         self.n = n
+        modn = IntegersModP(n)
         self.x = x
 
 class Verifier(object):
@@ -51,6 +36,13 @@ class TestSchnorr(TestCase):
     def setUp(self):
         self.one = 1
 
+    def test_generator(self):
+        n = 19
+        print(output_generator(n))
+
     def test_one(self):
         self.assertEqual(0,self.one)
+        n = 19
+
+
 
