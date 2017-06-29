@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import unittest
 
 import cProfile
 from math import floor
@@ -848,7 +849,8 @@ class TestBV(TestCase):
         nttf = [f.evaluate_at(1),f.evaluate_at(221),f.evaluate_at(332)]
 
         h = f*g
-
+if __name__ == '__main__':
+    unittest.main()
 
 
     # def test_poly_mult_time(self):
@@ -880,8 +882,3 @@ class TestBV(TestCase):
     #
     #     def do_test():
     #         bv.mult(c1, c2)
-
-
-
-
-
