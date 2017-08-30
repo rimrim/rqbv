@@ -11,3 +11,6 @@ __pycache__/*
 /ntl_wrapping_example/aes.o
 /ntl_wrapping_example/GTAGS
 *.xml
+misc.xml
+.idea/
+*.o
