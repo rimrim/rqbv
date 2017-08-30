@@ -52,13 +52,45 @@ class AuthProtocol(object):
 class TestSchnorrProtocol(unittest.TestCase):
     def test_zkp_schnorr(self):
         # common input is (A,y), prover's witness is x
-        # relation is A.x = y mod q, x is binary,
+        # relation is A.x = y mod q, x is binary, and
         # hamming weight wt(x) = w
 
-        # assume that we use some hash function for commitments
-        test = b'test'
-        hash = sha(test)
-        print(hash.hexdigest())
+        # assume that we use some hash function for commitments: sha1
+        # from builtin hashlib of python
+
+        # test case A = [a1, a2], or n = 2, m = 5 is the dimension of the
+        # lattice (a bit different from other tests where n is the
+        # dimension) this is to follow the convention of the paper
+        # Ling et al where they use n for something else
+
+        q = 13
+        m = 5
+        # a1 = Rq.random_samples(m, q)
+        # a2 = Rq.random_samples(m, q)
+        # print(a1)
+        # print(a2)
+        # generate test values for A and y
+        a1 = Rq(n = m, q = q, coeffs=[0, 2, 5, -5, -4])
+        a2 = Rq(n = m, q = q, coeffs=[-6, 0, 1, -3, 3])
+        A = [a1, a2]
+        y1 = Rq(n = m, q = q, coeffs=[-1, -6, -2, 0, 6])
+        y2 = Rq(n = m, q = q, coeffs=[3, -3, -2, 5, 0])
+        y = [y1, y2]
+
+        # prover witness x
+        x = Rq(n = m, q = q, coeffs=[1, 1, 0, 1, 0])
+
+        # commitments
+        # sample a random r is a ring element
+        r = Rq.random_samples(m, q)
+        # sample a random permutation
+        pi = numpy.random.permutation(m)
+        # computes 3 commitments
+
+    def test_list_mult_ele(self):
+
+
+
 
     def test_encode_ring_element(self):
         x = [5,6,7,8,9]
@@ -66,15 +98,14 @@ class TestSchnorrProtocol(unittest.TestCase):
         q = 7
         x = Rq(n = n, q = q, coeffs=x)
         bytes_x = x.encode()
-        hash = sha(bytes_x)
-        print(hash.hexdigest())
+        hash1 = sha(bytes_x)
         x = [5,6,0,8,16]
         n = 5
         q = 7
         x = Rq(n = n, q = q, coeffs=x)
         bytes_x = x.encode()
-        hash = sha(bytes_x)
-        print(hash.hexdigest())
+        hash2 = sha(bytes_x)
+        self.assertEqual(hash1.hexdigest(),hash2.hexdigest())
 
 
 
