@@ -240,6 +240,13 @@ class Rq(list):
                 temp += 1
         return temp
 
+    @staticmethod
+    def perm_eval(pi, x):
+        temp = []
+        for i in pi:
+            temp.append(x[i])
+        return temp
+
 
 class BV(object):
     def __init__(self, n=3, q=40433, t=2, sigma=4):

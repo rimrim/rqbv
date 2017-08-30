@@ -6,6 +6,7 @@ import time
 from bitarray import bitarray
 from math import log,ceil,floor
 from hashlib import sha1 as sha
+import numpy
 
 class AuthProtocol(object):
     def __init__(self):
@@ -64,6 +65,28 @@ class TestSchnorrProtocol(unittest.TestCase):
         # elements
         # output m polynomials
 
+        # analogy: shuffling a deck of card
+        m = 52
+        print(numpy.random.permutation(m))
+
+    def test_evaluate_with_permutation(self):
+        # pi = numpy.random.permutation(5)
+        # print(list(pi))
+        pi = [4, 1, 2, 0, 3]
+        x = [5,6,7,8,9]
+        x_p = Rq.perm_eval(pi,x)
+        # print(pi)
+        y = [9, 6, 7, 5, 8]
+        self.assertEqual(y,x_p)
+
+    def test_evaluate_with_permutation_rq_element(self):
+        pi = [4, 1, 2, 0, 3]
+        x = [5,6,7,8,9]
+        n = 5
+        q = 7
+        x = Rq(n = n, q = q, coeffs=x)
+        self.assertEqual([2,-1,0,-2,1], Rq.perm_eval(pi,x))
+
 class TestVariant1(unittest.TestCase):
     def test_something(self):
         self.assertEqual(True, False)
@@ -86,7 +109,7 @@ class TestVariant1(unittest.TestCase):
         T = [1 for _ in range(n)]
         T = Rq(n = n, q = q, coeffs = T)
         size_T = auth.size_of(T)
-        self.assertEquals(size_T, 875)
+        self.assertEqual(size_T, 875)
 
 
     def test_whole_protocol(self):
