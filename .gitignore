@@ -1,3 +1,13 @@
 *.out
 *.pyc
 __pycache__/*
+/.DS_Store
+/.Python
+/ntl_wrapping_example/.DS_Store
+/ntl_wrapping_example/GPATH
+/ntl_wrapping_example/GRTAGS
+/pip-selfcheck.json
+/ntl_wrapping_example/libfoo.so
+/ntl_wrapping_example/aes.o
+/ntl_wrapping_example/GTAGS
+*.xml

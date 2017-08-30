@@ -1,25 +1,6 @@
 from unittest import TestCase
 import random
 
-
-from modp import IntegersModP
-
-def output_generator(n):
-    modn = IntegersModP(n)
-
-    for i in range(2,n):
-        l = [0] * n
-        for j in range(n):
-            ind = modn(i)**j
-            ind = int(ind)
-            l[ind] = 1
-        count = 0
-        for k in l:
-            if k == 1:
-                count=count+1
-        if count == n-1:
-            return i
-
 class Prover(object):
     def __init__(self, g, n, x):
         self.g = g
@@ -45,4 +26,4 @@ class TestSchnorr(TestCase):
         n = 19
 
 
-
+print('hello')
