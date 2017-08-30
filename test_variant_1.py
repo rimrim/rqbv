@@ -47,9 +47,11 @@ class AuthProtocol(object):
 
         raise ValueError('cannot measure size of this object yet')
 
+class TestSchnorrProtocol(unittest.TestCase):
+    def test_something(self):
+        self.assertEqual(1,0)
 
-
-class MyTestCase(unittest.TestCase):
+class TestVariant1(unittest.TestCase):
     def test_something(self):
         self.assertEqual(True, False)
 
@@ -71,7 +73,7 @@ class MyTestCase(unittest.TestCase):
         T = [1 for _ in range(n)]
         T = Rq(n = n, q = q, coeffs = T)
         size_T = auth.size_of(T)
-        self.assertEquals(size_T, 7000)
+        self.assertEquals(size_T, 875)
 
 
     def test_whole_protocol(self):
@@ -113,10 +115,18 @@ class MyTestCase(unittest.TestCase):
 
         # alice extract her iris code again
         Q = [0 for _ in range(n)]
+        for i,j in enumerate(Q):
+            if i % 2 == 0 or i%3==0 or i% 5==0 or i%7==0 or i%11==0:
+                Q[i] = 1
+
+        print('hd of plaintexts queries is %s'%Rq.hd_plain(T,Q))
 
         # alice encrypts the query template
+        pack2 = bv.pack2(Q)
+        enc_Q = bv.enc(pack2, pk_a)
 
         # alice sends the ciphertext to bob
+        print('size of query template ciphertext %s bytes'%auth.size_of(enc_Q))
 
         # alice prove that she encrypts binary data (ZKP)
 

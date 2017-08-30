@@ -231,6 +231,15 @@ class Rq(list):
         ret = Rq(n, q, temp)
         return ret
 
+    @staticmethod
+    def hd_plain(a, b):
+        # work on bit string only
+        temp = 0
+        for (i,j) in zip(a,b):
+            if i != j:
+                temp += 1
+        return temp
+
 
 class BV(object):
     def __init__(self, n=3, q=40433, t=2, sigma=4):
@@ -520,4 +529,3 @@ class BV(object):
         bit_decomp = bin(x)[2:].zfill(d)[::-1]
         ret = bitarray(bit_decomp)
         return ret
-

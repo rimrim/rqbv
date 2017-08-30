@@ -165,6 +165,18 @@ class TestRq(TestCase):
         self.assertEqual(a * zero, zero)
         self.assertEqual(zero * a, zero)
 
+    def test_hamming_distance_plain(self):
+        n = 3
+        q = 5
+        a = Rq(n=3, q=5, coeffs=[0, 0, 0])
+        b = Rq(n=3, q=5, coeffs=[1, 0, 0])
+        self.assertEqual(Rq.hd_plain(a,b),1)
+        a = Rq(n=3, q=5, coeffs=[0, 1, 0])
+        self.assertEqual(Rq.hd_plain(a,b),2)
+        a = Rq(n=3, q=5, coeffs=[0, 1, 1])
+        self.assertEqual(Rq.hd_plain(a,b),3)
+
+
 
 class TestBV(TestCase):
     def setUp(self):
