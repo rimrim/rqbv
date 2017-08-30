@@ -7,6 +7,18 @@ from scipy.fftpack import fft, ifft
 from scipy import signal
 from numpy import real, base_repr, convolve
 
+class Bitarray(bitarray):
+
+    def __lshift__(self, count):
+        return self[count:] + type(self)('0') * count
+
+    def __rshift__(self, count):
+        return type(self)('0') * count + self[:-count]
+
+    @property
+    def bytes(self):
+        return self.tobytes()
+
 def modmath(a, b):
     # type: (int, int) -> int
     c = a % b
@@ -246,6 +258,36 @@ class Rq(list):
         for i in pi:
             temp.append(x[i])
         return temp
+
+    def encode(self):
+        """Represent the positive integer 'x' using 'd' bits in a byte string.
+
+        If 'd' is not a multiple of 8, 0-valued bits are prepended to
+        make up a complete byte.
+
+        ValueError is raised if the number of bits is insufficient to represent
+        the value."""
+        temp = Rq(self.n, self.q, self)
+        d = self.q
+        ret = b''
+        for x in temp:
+            if x < 0:
+                x = x + self.q
+            bit_decomp = bin(x)[2:]
+            if len(bit_decomp) > d:
+                raise ValueError(
+                        "{:d} is too large to represent in {:d} bits.".format(x, d))
+            # Increase d to the next multiple of 8.
+            # This is needed as Bitarray.tobytes() pads an incomplete byte on
+            # the right hand side.
+            rem = d % 8
+            if rem != 0:
+                d = d + 8 - rem
+            # Create a string of '01' characters, padded with leading '0'.
+            bit_decomp = bit_decomp.zfill(d)
+            # Convert the string to bytes.
+            ret += Bitarray(bit_decomp).tobytes()
+        return ret
 
 
 class BV(object):

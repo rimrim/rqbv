@@ -60,14 +60,33 @@ class TestSchnorrProtocol(unittest.TestCase):
         hash = sha(test)
         print(hash.hexdigest())
 
-    def test_permuation_S_m(self):
+    def test_encode_ring_element(self):
+        x = [5,6,7,8,9]
+        n = 5
+        q = 7
+        x = Rq(n = n, q = q, coeffs=x)
+        bytes_x = x.encode()
+        hash = sha(bytes_x)
+        print(hash.hexdigest())
+        x = [5,6,0,8,16]
+        n = 5
+        q = 7
+        x = Rq(n = n, q = q, coeffs=x)
+        bytes_x = x.encode()
+        hash = sha(bytes_x)
+        print(hash.hexdigest())
+
+
+
+    # def test_permuation_S_m(self):
         # S_m to be the symmetric group of all permutations of m
         # elements
         # output m polynomials
 
         # analogy: shuffling a deck of card
-        m = 52
-        print(numpy.random.permutation(m))
+        # m = 52
+        # we don't need to implement, simply use random.permutation of numpy
+        # print(numpy.random.permutation(m))
 
     def test_evaluate_with_permutation(self):
         # pi = numpy.random.permutation(5)
@@ -88,8 +107,6 @@ class TestSchnorrProtocol(unittest.TestCase):
         self.assertEqual([2,-1,0,-2,1], Rq.perm_eval(pi,x))
 
 class TestVariant1(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(True, False)
 
     def test_record_time(self):
         auth = AuthProtocol()
