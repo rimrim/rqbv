@@ -9,15 +9,29 @@ from math import log,ceil,floor
 class AuthProtocol(object):
     def __init__(self):
         self.timer = Timer()
-        self.steps = []
+        self.steps = {}
         self.start = None
         self.end = None
+        self.secs = None
+        self.msecs = None
 
     def start_time_for(self, step):
         if step not in self.steps:
-            temp_dict = {'key':step,'comp_time':None,'comm_size':None}
-            self.steps.append(temp_dict)
+            self.steps[step]={'comp_time':None,'comm_size':None}
         self.start = time.time()
+
+    def stop_time_for(self, step):
+        if step not in self.steps:
+            raise ValueError('protocol does not have step %s'%s)
+
+        self.end = time.time()
+        self.secs = self.end - self.start
+        self.msecs = self.secs * 1000
+
+        self.steps[step]['comp_time'] = self.msecs
+
+    def time_for(self, step):
+        print('time in msecs for %s is %s'%(step,self.steps[step]['comp_time']))
 
 
 
@@ -34,7 +48,6 @@ class MyTestCase(unittest.TestCase):
         c = a**b
         auth.stop_time_for("sample")
         t = auth.time_for("sample")
-        print(t)
 
     def test_whole_protocol(self):
         # init parameter for the authentication system
@@ -45,9 +58,13 @@ class MyTestCase(unittest.TestCase):
         l = floor(log(t, 2)) - 1
         tau = 20
         bv = BV(n = n, t = t, q = q, sigma = sigma)
+        auth = AuthProtocol()
 
         # alice generates her key
+        auth.start_time_for('genkey')
         (sk_a, pk_a) = bv.genkey()
+        auth.stop_time_for('genkey')
+        auth.time_for('genkey')
 
         # alice registers her fingerprint
 
@@ -56,8 +73,11 @@ class MyTestCase(unittest.TestCase):
         T = Rq(n = n, q = t, coeffs = T)
 
         # alice encrypts the registered template
+        auth.start_time_for('enc_registered_template')
         pack1 = bv.pack1(T)
         enc_T = bv.enc(pack1, pk_a)
+        auth.stop_time_for('enc_registered_template')
+        auth.time_for('enc_registered_template')
 
         # alice sends the ciphertext to bob
 
