@@ -5,6 +5,7 @@ from timer import Timer
 import time
 from bitarray import bitarray
 from math import log,ceil,floor
+from hashlib import sha1 as sha
 
 class AuthProtocol(object):
     def __init__(self):
@@ -48,8 +49,20 @@ class AuthProtocol(object):
         raise ValueError('cannot measure size of this object yet')
 
 class TestSchnorrProtocol(unittest.TestCase):
-    def test_something(self):
-        self.assertEqual(1,0)
+    def test_zkp_schnorr(self):
+        # common input is (A,y), prover's witness is x
+        # relation is A.x = y mod q, x is binary,
+        # hamming weight wt(x) = w
+
+        # assume that we use some hash function for commitments
+        test = b'test'
+        hash = sha(test)
+        print(hash.hexdigest())
+
+    def test_permuation_S_m(self):
+        # S_m to be the symmetric group of all permutations of m
+        # elements
+        # output m polynomials
 
 class TestVariant1(unittest.TestCase):
     def test_something(self):

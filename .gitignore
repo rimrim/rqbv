@@ -1,3 +1,4 @@
+/.idea/
 *.out
 *.pyc
 __pycache__/*
@@ -15,4 +16,4 @@ __pycache__/*
 /bin/
 /include/
 /lib/
-/.idea/workspace.xml
+
