@@ -33,6 +33,19 @@ class AuthProtocol(object):
     def time_for(self, step):
         print('time in msecs for %s is %s'%(step,self.steps[step]['comp_time']))
 
+    def size_of(self, thing):
+        temp = 0
+        if isinstance(thing, Rq):
+            bits = ceil(log(thing.q,2))
+            temp = thing.n * bits
+            return int(temp / 8)
+
+        if isinstance(thing, list):
+            for i in thing:
+                temp = temp + self.size_of(i)
+            return int(temp / 8)
+
+        raise ValueError('cannot measure size of this object yet')
 
 
 
@@ -49,9 +62,21 @@ class MyTestCase(unittest.TestCase):
         auth.stop_time_for("sample")
         t = auth.time_for("sample")
 
+    def test_size_of(self):
+        auth = AuthProtocol()
+        n = 100
+        q = 2**70
+        sigma = 3
+        t = n
+        T = [1 for _ in range(n)]
+        T = Rq(n = n, q = q, coeffs = T)
+        size_T = auth.size_of(T)
+        self.assertEquals(size_T, 7000)
+
+
     def test_whole_protocol(self):
         # init parameter for the authentication system
-        n = 100
+        n = 200
         q = 2**70
         sigma = 3
         t = n
@@ -64,7 +89,7 @@ class MyTestCase(unittest.TestCase):
         auth.start_time_for('genkey')
         (sk_a, pk_a) = bv.genkey()
         auth.stop_time_for('genkey')
-        auth.time_for('genkey')
+        # auth.time_for('genkey')
 
         # alice registers her fingerprint
 
@@ -80,12 +105,14 @@ class MyTestCase(unittest.TestCase):
         auth.time_for('enc_registered_template')
 
         # alice sends the ciphertext to bob
+        print('size of registered template ciphertext %s bytes'%auth.size_of(enc_T))
 
         # bob stores alice template
 
         # alice authenticates herself
 
         # alice extract her iris code again
+        Q = [0 for _ in range(n)]
 
         # alice encrypts the query template
 
