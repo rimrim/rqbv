@@ -12,3 +12,6 @@ __pycache__/*
 /ntl_wrapping_example/GTAGS
 /.idea
 **.o
+/bin/
+/include/
+/lib/
