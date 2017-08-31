@@ -1,4 +1,5 @@
 import unittest
+import random
 from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot
 from timer import Timer
@@ -41,6 +42,9 @@ class AuthProtocol(object):
             bits = ceil(log(thing.q,2))
             temp = thing.n * bits
             return int(temp / 8)
+
+        if isinstance(thing, str):
+            return len(thing)*8
 
         if isinstance(thing, list):
             for i in thing:
@@ -89,7 +93,30 @@ class TestSchnorrProtocol(unittest.TestCase):
         # computes 3 commitments
         c12 = Rq.matrix_mul_ring(A, r)
         bytes_c1 = pi.encode() + c12[0].encode() + c12[1].encode()
-        print(len(bytes_c1))
+        c1 = sha(bytes_c1).hexdigest()
+
+        c2 = Rq.perm_eval(pi, r)
+        c2 = Rq(n = m, q = q, coeffs = c2)
+        c2 = sha(c2.encode()).hexdigest()
+
+        c3 = Rq.perm_eval(pi, x + r)
+        c3 = Rq(n = m, q = q, coeffs = c3)
+        c3 = sha(c3.encode()).hexdigest()
+
+        comms = [c1, c2, c3]
+        # comms is sent to verifier
+        auth = AuthProtocol()
+        print('size of commitments is %s'%auth.size_of(comms))
+
+        # verifier send a random challenge
+        ch = random.choice([1,2,3])
+        if ch == 1:
+            v = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, x))
+            t = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, r))
+            rsp = [v, t]
+        elif ch == 2:
+
+
 
     def test_extend_ring_element(self):
         q = 13
@@ -114,9 +141,6 @@ class TestSchnorrProtocol(unittest.TestCase):
 
         mul = Rq.matrix_mul_ring(A,x)
         self.assertEquals(y, mul)
-
-
-
 
     def test_encode_ring_element(self):
         x = [5,6,7,8,9]
