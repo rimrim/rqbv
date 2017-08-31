@@ -253,6 +253,13 @@ class Rq(list):
         return temp
 
     @staticmethod
+    def matrix_mul_ring(A,x):
+        y = []
+        for a in A:
+            y.append(a*x)
+        return y
+
+    @staticmethod
     def perm_eval(pi, x):
         temp = []
         for i in pi:

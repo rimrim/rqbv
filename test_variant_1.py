@@ -84,10 +84,36 @@ class TestSchnorrProtocol(unittest.TestCase):
         # sample a random r is a ring element
         r = Rq.random_samples(m, q)
         # sample a random permutation
-        pi = numpy.random.permutation(m)
+        pi = list(numpy.random.permutation(m))
+        pi = Rq(n = m, q = q, coeffs = pi)
         # computes 3 commitments
+        c12 = Rq.matrix_mul_ring(A, r)
+        bytes_c1 = pi.encode() + c12[0].encode() + c12[1].encode()
+        print(len(bytes_c1))
+
+    def test_extend_ring_element(self):
+        q = 13
+        m = 5
+        a1 = Rq(n = m, q = q, coeffs=[0, 2, 5, -5, -4])
+        a2 = Rq(n = m, q = q, coeffs=[-6, 0, 1, -3, 3])
+        a1.extend(a2)
+        print(a1)
 
     def test_list_mult_ele(self):
+        q = 13
+        m = 5
+        a1 = Rq(n = m, q = q, coeffs=[0, 2, 5, -5, -4])
+        a2 = Rq(n = m, q = q, coeffs=[-6, 0, 1, -3, 3])
+        A = [a1, a2]
+        y1 = Rq(n = m, q = q, coeffs=[-1, -6, -2, 0, 6])
+        y2 = Rq(n = m, q = q, coeffs=[3, -3, -2, 5, 0])
+        y = [y1, y2]
+
+        # prover witness x
+        x = Rq(n = m, q = q, coeffs=[1, 1, 0, 1, 0])
+
+        mul = Rq.matrix_mul_ring(A,x)
+        self.assertEquals(y, mul)
 
 
 
@@ -127,6 +153,15 @@ class TestSchnorrProtocol(unittest.TestCase):
         x_p = Rq.perm_eval(pi,x)
         # print(pi)
         y = [9, 6, 7, 5, 8]
+        self.assertEqual(y,x_p)
+        q = 13
+        m = 5
+        pi = Rq(q = q, n = m, coeffs = pi)
+        x = Rq(q = q, n = m, coeffs = x)
+        x_p = Rq.perm_eval(pi,x)
+        # print(pi)
+        y = [9, 6, 7, 5, 8]
+        y = Rq(q = q, n = m, coeffs = y)
         self.assertEqual(y,x_p)
 
     def test_evaluate_with_permutation_rq_element(self):
