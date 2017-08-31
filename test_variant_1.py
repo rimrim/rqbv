@@ -54,7 +54,7 @@ class AuthProtocol(object):
         raise ValueError('cannot measure size of this object yet')
 
 class TestSchnorrProtocol(unittest.TestCase):
-    def test_zkp_schnorr(self):
+    def test_zkp_schnorr_ktx(self):
         # common input is (A,y), prover's witness is x
         # relation is A.x = y mod q, x is binary, and
         # hamming weight wt(x) = w
@@ -110,7 +110,6 @@ class TestSchnorrProtocol(unittest.TestCase):
 
         # verifier send a random challenge
         ch = random.choice([1,2,3])
-        ch = 2
         print('challenge is %s'%ch)
 
         # prover sends response based on challenge
@@ -153,9 +152,29 @@ class TestSchnorrProtocol(unittest.TestCase):
                 print('check pass')
             else:
                 print('check fail')
-
+            phi_z = Rq(n = m, q = q, coeffs = Rq.perm_eval(phi,z))
+            bytes_check_c3 = phi_z.encode()
+            check_c3 = sha(bytes_check_c3).hexdigest()
+            if c3 == check_c3:
+                print('check pass')
+            else:
+                print('check fail')
         else:
-            print('a')
+            As = Rq.matrix_mul_ring(A, s)
+            bytes_check_c1 = ome.encode() + As[0].encode() + As[1].encode()
+            check_c1 = sha(bytes_check_c1).hexdigest()
+            if c1 == check_c1:
+                print('check pass')
+            else:
+                print('check fail')
+            ome_s = Rq(n = m, q = q, coeffs = Rq.perm_eval(ome, s))
+            bytes_check_c2 = ome_s.encode()
+            check_c2 = sha(bytes_check_c2).hexdigest()
+            if c2 == check_c2:
+                print('check pass')
+            else:
+                print('check fail')
+
 
 
     def test_extend_ring_element(self):
