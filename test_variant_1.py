@@ -44,12 +44,12 @@ class AuthProtocol(object):
             return int(temp / 8)
 
         if isinstance(thing, str):
-            return len(thing)*8
+            return len(thing)
 
         if isinstance(thing, list):
             for i in thing:
                 temp = temp + self.size_of(i)
-            return int(temp / 8)
+            return temp
 
         raise ValueError('cannot measure size of this object yet')
 
@@ -110,12 +110,52 @@ class TestSchnorrProtocol(unittest.TestCase):
 
         # verifier send a random challenge
         ch = random.choice([1,2,3])
+        ch = 2
+        print('challenge is %s'%ch)
+
+        # prover sends response based on challenge
         if ch == 1:
             v = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, x))
             t = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, r))
             rsp = [v, t]
         elif ch == 2:
+            phi = pi
+            z = x + r
+            rsp = [phi, z]
+        else:
+            ome = pi
+            s = r
+            rsp = [ome, s]
 
+        print('response size for one round is %s'%auth.size_of(rsp))
+
+        # verifier check rsp
+        if ch == 1:
+            print('this should be binary %s'%rsp[0])
+            check_c2 = sha(rsp[1].encode()).hexdigest()
+            if c2 == check_c2:
+                print('check pass')
+            else:
+                print('check fail')
+            check_c3 = sha((rsp[0]+rsp[1]).encode()).hexdigest()
+            if c3 == check_c3:
+                print('check pass')
+            else:
+                print('check fail')
+
+        elif ch == 2:
+            az = Rq.matrix_mul_ring(A, z)
+            temp0 = az[0] - y[0]
+            temp1 = az[1] - y[1]
+            bytes_check_c1 = phi.encode() + temp0.encode() + temp1.encode()
+            check_c1 = sha(bytes_check_c1).hexdigest()
+            if c1 == check_c1:
+                print('check pass')
+            else:
+                print('check fail')
+
+        else:
+            print('a')
 
 
     def test_extend_ring_element(self):
