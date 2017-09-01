@@ -102,20 +102,106 @@ class ISISZKP(object):
         print('Stage 2: Challenge, verifier send random ch in {1,2,3} to prover')
         ch = random.choice([1,2,3])
         print('challenge of this round is %s'%ch)
+        print('\n')
+        print('Stage 3: Response')
+        # prover sends response based on challenge
+        if ch == 1:
+            v = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, x))
+            t = Rq(n = m, q = q, coeffs = Rq.perm_eval(pi, r))
+            rsp = [v, t]
+            print('ch is 1, prover send back pi(x) and pi(r)')
+            comm_size = auth.size_of(rsp)
+            print('size of response is %s'%comm_size)
+        elif ch == 2:
+            phi = pi
+            z = x + r
+            rsp = [phi, z]
+            print('ch is 2, prover send back pi and (x + r)')
+            comm_size = auth.size_of(rsp)
+            print('size of response is %s'%comm_size)
+        else:
+            ome = pi
+            s = r
+            rsp = [ome, s]
+            print('ch is 3, prover send back pi and r')
+            comm_size = auth.size_of(rsp)
+            print('size of response is %s'%comm_size)
+
+        print('\n')
+        print('Stage 4: Verification')
+
+        if ch == 1:
+            print('check binary...')
+            check_c2 = sha(rsp[1].encode()).hexdigest()
+            print('check c2')
+            if c2 == check_c2:
+                print('check pass')
+            else:
+                print('check fail')
+            print('check c3')
+            check_c3 = sha((rsp[0]+rsp[1]).encode()).hexdigest()
+            if c3 == check_c3:
+                print('check pass')
+            else:
+                print('check fail')
+
+        elif ch == 2:
+            az = Rq.matrix_mul_ring(A, z)
+            temp = []
+            for (i,j) in zip (az, y):
+                temp.append(i - j)
+            temp_bytes = b''
+            for i in temp:
+                temp_bytes += i.encode()
+            bytes_check_c1 = phi.encode() + temp_bytes
+            check_c1 = sha(bytes_check_c1).hexdigest()
+            print('check c1')
+            if c1 == check_c1:
+                print('check pass')
+            else:
+                print('check fail')
+            phi_z = Rq(n = m, q = q, coeffs = Rq.perm_eval(phi,z))
+            bytes_check_c3 = phi_z.encode()
+            check_c3 = sha(bytes_check_c3).hexdigest()
+            print('check c3')
+            if c3 == check_c3:
+                print('check pass')
+            else:
+                print('check fail')
+        else:
+            As = Rq.matrix_mul_ring(A, s)
+            As_bytes = b''
+            for i in As:
+                As_bytes += i.encode()
+            bytes_check_c1 = ome.encode() + As_bytes
+            check_c1 = sha(bytes_check_c1).hexdigest()
+            print('check c1')
+            if c1 == check_c1:
+                print('check pass')
+            else:
+                print('check fail')
+            ome_s = Rq(n = m, q = q, coeffs = Rq.perm_eval(ome, s))
+            bytes_check_c2 = ome_s.encode()
+            check_c2 = sha(bytes_check_c2).hexdigest()
+            print('check c2')
+            if c2 == check_c2:
+                print('check pass')
+            else:
+                print('check fail')
+
+
 
 
 class TestSchnorrProtocol(unittest.TestCase):
     def test_schnoor_based_ktx(self):
-        q = 13
-        n = 2
-        m = 5
-        a1 = Rq(n = m, q = q, coeffs=[0, 2, 5, -5, -4])
-        a2 = Rq(n = m, q = q, coeffs=[-6, 0, 1, -3, 3])
+        q = 2**20
+        n = 3
+        m = 100
+        a1 = Rq.random_samples(m, q)
+        a2 = Rq.random_samples(m, q)
         A = [a1, a2]
-        y1 = Rq(n = m, q = q, coeffs=[-1, -6, -2, 0, 6])
-        y2 = Rq(n = m, q = q, coeffs=[3, -3, -2, 5, 0])
-        y = [y1, y2]
-        x = Rq(n = m, q = q, coeffs=[1, 1, 0, 1, 0])
+        x = Rq(n = m, q = q, coeffs=[1 for _ in range(m)])
+        y = Rq.matrix_mul_ring(A,x)
 
         zkp = ISISZKP(A, y, x, m, n, q)
         zkp.schnoor_based_ktx(60)
