@@ -53,7 +53,74 @@ class AuthProtocol(object):
 
         raise ValueError('cannot measure size of this object yet')
 
+class ISISZKP(object):
+    def __init__(self, A, y, x, m, n, q):
+        # m is lattice dimension
+        # n is rows of A
+        self.A = A
+        self.y = y
+        self.x = x
+
+        self.m = m
+        self.n = n
+        self.q = q
+
+    def schnoor_based_ktx(self, security):
+        A = self.A
+        y = self.y
+        x = self.x
+        m = self.m
+        n = self.n
+        q = self.q
+        auth = AuthProtocol()
+        print('Stage 1: Commitment')
+        print('1.1. sample a random ring element r ...')
+        r = Rq.random_samples(self.m, self.q)
+        print('1.2. sample a random permutation pi ...')
+        pi = list(numpy.random.permutation(self.m))
+        pi = Rq(n = m, q = q, coeffs = pi)
+        print('1.3. compute 3 commitments ...')
+        print('c1 = COMM(pi, A.r mod q) ...')
+        c12 = Rq.matrix_mul_ring(A, r)
+        bytes_c1 = b''
+        for b in c12:
+            bytes_c1 += b.encode()
+        bytes_c1 = pi.encode() + bytes_c1
+        c1 = sha(bytes_c1).hexdigest()
+        print('c2 = COMM(pi(r)) ...')
+        c2 = Rq.perm_eval(pi, r)
+        c2 = Rq(n = m, q = q, coeffs = c2)
+        c2 = sha(c2.encode()).hexdigest()
+        print('c3 = COMM(pi(x + r)) ...')
+        c3 = Rq.perm_eval(pi, x + r)
+        c3 = Rq(n = m, q = q, coeffs = c3)
+        c3 = sha(c3.encode()).hexdigest()
+        comms = [c1, c2, c3]
+        print('sending commitments to verifier')
+        print('size of commitments is %s'%auth.size_of(comms))
+        print('\n')
+        print('Stage 2: Challenge, verifier send random ch in {1,2,3} to prover')
+        ch = random.choice([1,2,3])
+        print('challenge of this round is %s'%ch)
+
+
 class TestSchnorrProtocol(unittest.TestCase):
+    def test_schnoor_based_ktx(self):
+        q = 13
+        n = 2
+        m = 5
+        a1 = Rq(n = m, q = q, coeffs=[0, 2, 5, -5, -4])
+        a2 = Rq(n = m, q = q, coeffs=[-6, 0, 1, -3, 3])
+        A = [a1, a2]
+        y1 = Rq(n = m, q = q, coeffs=[-1, -6, -2, 0, 6])
+        y2 = Rq(n = m, q = q, coeffs=[3, -3, -2, 5, 0])
+        y = [y1, y2]
+        x = Rq(n = m, q = q, coeffs=[1, 1, 0, 1, 0])
+
+        zkp = ISISZKP(A, y, x, m, n, q)
+        zkp.schnoor_based_ktx(60)
+
+
     def test_zkp_schnorr_ktx(self):
         # common input is (A,y), prover's witness is x
         # relation is A.x = y mod q, x is binary, and
