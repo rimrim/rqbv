@@ -6,6 +6,7 @@ from timer import Timer
 import time
 from bitarray import bitarray
 from math import log,ceil,floor
+import math
 from hashlib import sha1 as sha
 import numpy
 
@@ -188,15 +189,20 @@ class ISISZKP(object):
                 print('check pass')
             else:
                 print('check fail')
+        print('impersonation probability for 1 round is 2/3')
+        rounds = round(log(1/(2**security), 2/3))
+        print('need to repeate %s rounds to obtain security level %s'%(rounds,security))
+        size = rounds*comm_size
+        print('total communication is %s bytes'%size)
 
 
 
 
 class TestSchnorrProtocol(unittest.TestCase):
     def test_schnoor_based_ktx(self):
-        q = 2**20
+        q = 2**10
         n = 3
-        m = 100
+        m = 1000
         a1 = Rq.random_samples(m, q)
         a2 = Rq.random_samples(m, q)
         A = [a1, a2]
@@ -204,7 +210,7 @@ class TestSchnorrProtocol(unittest.TestCase):
         y = Rq.matrix_mul_ring(A,x)
 
         zkp = ISISZKP(A, y, x, m, n, q)
-        zkp.schnoor_based_ktx(60)
+        zkp.schnoor_based_ktx(15)
 
 
     def test_zkp_schnorr_ktx(self):
