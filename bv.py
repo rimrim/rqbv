@@ -61,6 +61,23 @@ class Bitarray(bitarray):
     def bytes(self):
         return self.tobytes()
 
+def extract_list_ring(list):
+    temp = []
+    for i in list:
+        for j in i:
+            temp.append(j)
+    return temp
+
+
+def pow_base(ring, q, b = 2):
+    """power base b one ring element to log_base(q) ring elements, large norm"""
+    length = ceil(log(q,b))
+    final = []
+    for i in range(length):
+        temp = (b**i)*ring
+        final.append(temp)
+    return final
+
 def decomp(ring, q, b = 2):
     """Decompose one ring element to log_base(q) ring elements, smaller norm"""
     temp = list(ring)
@@ -71,15 +88,12 @@ def decomp(ring, q, b = 2):
     final = []
     for _ in range(length):
         final.append([])
-    ret = []
     for i in temp:
         t = base(i, b)
         if len(t) < length:
             t.extend([0]*(length - len(t)))
         for j,k in enumerate(t):
             final[j].append(k)
-            
-        ret.append(t)
     return final
         
     

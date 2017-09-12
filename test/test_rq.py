@@ -9,7 +9,7 @@ from math import log
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, Gadget, modmath, \
-    small_samples, large_samples, rot, base, decomp
+    small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring
 from timer import Timer
 
 
@@ -21,10 +21,27 @@ class TestRq(TestCase):
         a = Rq(n=3, q=5, coeffs=[1, 2, 3])
         self.assertEqual(a, [1, 2, -2])
 
+    def test_inner_product_Rq_with_pow_base_and_decomp(self):
+        a = Rq(n=3, q=19, coeffs=[12, 13, 14])
+        b = Rq(n=3, q=19, coeffs=[1, 2, 3])
+        c = Rq.inner_product(a, b, 19)
+        self.assertEqual(c, 4)
+        decomp_a = decomp(a, a.q)
+        decomp_a = extract_list_ring(decomp_a)
+        b_pow = pow_base(b, b.q)
+        b_pow = extract_list_ring(b_pow)
+        d = Rq.inner_product(decomp_a, b_pow, 19)
+        self.assertEqual(d, 4)
+
+    def test_pow_base(self):
+        a = Rq(n=3, q=19, coeffs=[1, 2, 3])
+        a_pow = pow_base(a, a.q)
+        print(a_pow)
+
     def test_bit_decomp(self):
-        a = Rq(n=3, q=19, coeffs=[3, 4, 18])
-        decomp_a = decomp(a, a.q, 10)
-        print(decomp_a)
+        a = Rq(n=3, q=5, coeffs=[3, 4, 18])
+        decomp_a = decomp(a, a.q)
+        self.assertEqual(decomp_a, [[1,0,1],[1,0,1],[0,1,0]])
         
 
     def test_base_operation(self):
