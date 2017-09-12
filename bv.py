@@ -9,12 +9,20 @@ from scipy import signal
 from numpy import real, base_repr, convolve
 
 class Gadget(object):
+    """Flattening gadget utility""" 
     def __init__(self, base, length):
         self.base = base
         self.length = length
 
     def forward(self, a):
         ret = []
+        if isinstance(a, Rq ):
+            for i in a:
+                if i < 0:
+                    i = a.q + i
+                ret.append(self.forward(i))
+            return ret
+            
         if isinstance(a, int):
             ret = base(a, self.base)
             if len(ret) > self.length:
@@ -23,16 +31,23 @@ class Gadget(object):
                ret.extend([0]*(self.length - len(ret)))
             return ret
 
+        if isinstance(a, list):
+            for i in a:
+                ret.append(self.forward(i))
+            return ret
+    
+
     def backward(self, b):
         ret = 0
+        ret_list = []
         for i,j in enumerate(b):
-            ret += j*(self.base**i)
+            if isinstance(j,int):
+                ret += j*(self.base**i)
+            if isinstance(j,list):
+                ret_list.append(self.backward(j))
+        if ret_list:
+            return ret_list
         return ret
-    
-            
-            
-            
-    
 
 class Bitarray(bitarray):
 
@@ -45,6 +60,29 @@ class Bitarray(bitarray):
     @property
     def bytes(self):
         return self.tobytes()
+
+def decomp(ring, q, b = 2):
+    """Decompose one ring element to log_base(q) ring elements, smaller norm"""
+    temp = list(ring)
+    length = ceil(log(q,b))
+    for (i,j) in enumerate(temp):
+        if j < 0:
+            temp[i] = q + j
+    final = []
+    for _ in range(length):
+        final.append([])
+    ret = []
+    for i in temp:
+        t = base(i, b)
+        if len(t) < length:
+            t.extend([0]*(length - len(t)))
+        for j,k in enumerate(t):
+            final[j].append(k)
+            
+        ret.append(t)
+    return final
+        
+    
 
 def base(n, b):
     if n == 0:

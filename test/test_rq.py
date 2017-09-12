@@ -1,3 +1,5 @@
+# coding: utf-8
+
 from __future__ import absolute_import
 import unittest
 
@@ -7,7 +9,7 @@ from math import log
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, Gadget, modmath, \
-    small_samples, large_samples, rot, base
+    small_samples, large_samples, rot, base, decomp
 from timer import Timer
 
 
@@ -19,6 +21,12 @@ class TestRq(TestCase):
         a = Rq(n=3, q=5, coeffs=[1, 2, 3])
         self.assertEqual(a, [1, 2, -2])
 
+    def test_bit_decomp(self):
+        a = Rq(n=3, q=19, coeffs=[3, 4, 18])
+        decomp_a = decomp(a, a.q, 10)
+        print(decomp_a)
+        
+
     def test_base_operation(self):
         a = 1002
         b = base(a,2)
@@ -29,6 +37,46 @@ class TestRq(TestCase):
         self.assertEqual(c, [10, 31])
         b = base(a,16)
         self.assertEqual(b, [10, 14, 3])
+
+    def test_flatten_list_of_ring_element(self):
+        a = Rq(n=3, q=13, coeffs=[100, 200, 300])
+        b = Rq(n=3, q=13, coeffs=[10, 20, 30])
+        c = [a, b]
+        g = Gadget(3, 4)
+        exp_c = g.forward(c)
+        d = g.backward(exp_c)
+        e = Rq(n = 3, q = 13, coeffs = d[0])
+        f = Rq(n = 3, q = 13, coeffs = d[1])
+        h = [e,f]
+        self.assertEqual(c, h)
+
+    def test_flatten_ring_element(self):
+        a = Rq(n=3, q=13, coeffs=[100, 200, 300])
+        b = [9, 5, 1]
+        g = Gadget(3, 4)
+        exp_a = g.forward(a)
+        exp_b = g.forward(b)
+        self.assertEqual(exp_a, exp_b)
+        c = g.backward(exp_a)
+        c = Rq(n = 3, q = 13, coeffs = c)
+        self.assertEqual(c, a)
+
+    def test_flatten_array_of_array_of_int(self):
+        a = [[1002,1002,1002],[1002,1002,1002],[1002,1002,1002],[1002,1002,1002]]
+        g = Gadget(16, 3)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]]])
+        b = g.backward(exp_a)
+        self.assertEqual(b, a)
+
+    def test_flatten_array_of_int(self):
+        a = [1002, 1002, 1002]
+        g = Gadget(16, 3)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [[10,14,3],[10,14,3],[10,14,3]])
+        b = g.backward(exp_a)
+        self.assertEqual(b, a)
+        
 
     def test_flatten_gadget(self):
         # a is an integer
