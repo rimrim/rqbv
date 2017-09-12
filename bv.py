@@ -1,11 +1,38 @@
 import numpy
 from bitarray import bitarray
 from random import randint
+from math import ceil, log
 
 # note: it's hard to install scipy on windows
 from scipy.fftpack import fft, ifft
 from scipy import signal
 from numpy import real, base_repr, convolve
+
+class Gadget(object):
+    def __init__(self, base, length):
+        self.base = base
+        self.length = length
+
+    def forward(self, a):
+        ret = []
+        if isinstance(a, int):
+            ret = base(a, self.base)
+            if len(ret) > self.length:
+                raise ValueError('base length too short')
+            if len(ret) < self.length:
+               ret.extend([0]*(self.length - len(ret)))
+            return ret
+
+    def backward(self, b):
+        ret = 0
+        for i,j in enumerate(b):
+            ret += j*(self.base**i)
+        return ret
+    
+            
+            
+            
+    
 
 class Bitarray(bitarray):
 
@@ -18,6 +45,15 @@ class Bitarray(bitarray):
     @property
     def bytes(self):
         return self.tobytes()
+
+def base(n, b):
+    if n == 0:
+        return [0]
+    digits = []
+    while n:
+        digits.append(int(n % b))
+        n //= b
+    return digits
 
 def modmath(a, b):
     # type: (int, int) -> int

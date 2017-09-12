@@ -6,8 +6,8 @@ from math import floor
 from math import log
 from unittest import TestCase
 
-from bv import poly_multiply, BV, Rq, modmath, \
-    small_samples, large_samples, rot
+from bv import poly_multiply, BV, Rq, Gadget, modmath, \
+    small_samples, large_samples, rot, base
 from timer import Timer
 
 
@@ -18,6 +18,39 @@ class TestRq(TestCase):
     def test_init(self):
         a = Rq(n=3, q=5, coeffs=[1, 2, 3])
         self.assertEqual(a, [1, 2, -2])
+
+    def test_base_operation(self):
+        a = 1002
+        b = base(a,2)
+        self.assertEqual(b, [0, 1, 0, 1, 0, 1 , 1, 1, 1, 1])
+        b = base(a,5)
+        self.assertEqual(b, [2, 0, 0, 3, 1])
+        c = base(a,32)
+        self.assertEqual(c, [10, 31])
+        b = base(a,16)
+        self.assertEqual(b, [10, 14, 3])
+
+    def test_flatten_gadget(self):
+        # a is an integer
+        a = 1002
+        b = 2
+        g = Gadget(base=b, length = 15)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [0,1,0,1,0,1,1,1,1,1,0,0,0,0,0])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
+        b = 5 
+        g = Gadget(base=b, length = 5)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [2, 0, 0, 3, 1])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
+        b = 16
+        g = Gadget(base=b, length = 5)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [10,14,3,0,0])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
 
     def test_mod_math(self):
         a = 0
