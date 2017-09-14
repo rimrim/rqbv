@@ -9,7 +9,7 @@ from math import log
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, Gadget, modmath, \
-    small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring
+    small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring, BGV
 from timer import Timer
 
 
@@ -42,8 +42,19 @@ class TestRq(TestCase):
         a = Rq(n=3, q=5, coeffs=[3, 4, 18])
         decomp_a = decomp(a, a.q)
         self.assertEqual(decomp_a, [[1,0,1],[1,0,1],[0,1,0]])
+
+    def test_basic_bgv(self):
+        d = 6
+        n = 1
+        q = 27
+        N = 3
+        bgv = BGV(d = d, n = n, q = q, N = N, sigma =2)
+        sec = bgv.secretKeyGen()
+        print(sec)
         
 
+        
+        
     def test_base_operation(self):
         a = 1002
         b = base(a,2)
