@@ -8,37 +8,8 @@ from scipy.fftpack import fft, ifft
 from scipy import signal
 from numpy import real, base_repr, convolve
 
-class BGV(object):
-    def __init__(self, d, n, q, N, sigma ):
-        self.d = d
-        self.n = n
-        self.q = q
-        self.N = N
-        self.sigma = sigma
-        self.zeros = Rq(self.d, self.q, [0 for i in range(self.d)])
-        self.one = Rq(self.d, self.q, [0 for i in range(self.d)])
-        self.one[0] = 1
-        self.all_one=Rq(self.d, self.q, [1 for _ in range(self.d)])
-
-    def secretKeyGen(self):
-        self.s_prime = []
-        for i in range(self.n):
-            small = small_samples(self.d, self.sigma)
-            temp = Rq(self.d, self.q, small)
-            self.s_prime.append(temp)
-        ret = []
-        ret.append(self.one)
-        for i in self.s_prime:
-            ret.append(i)
-        return ret
-
-    def publicKeyGen(self, N = self.N):
-        for i in range(self.n):
-    
-
-
 class Gadget(object):
-    """Flattening gadget utility""" 
+    """Flattening gadget utility"""
     def __init__(self, base, length):
         self.base = base
         self.length = length
@@ -51,7 +22,7 @@ class Gadget(object):
                     i = a.q + i
                 ret.append(self.forward(i))
             return ret
-            
+
         if isinstance(a, int):
             ret = base(a, self.base)
             if len(ret) > self.length:
@@ -64,7 +35,7 @@ class Gadget(object):
             for i in a:
                 ret.append(self.forward(i))
             return ret
-    
+
 
     def backward(self, b):
         ret = 0
@@ -124,8 +95,8 @@ def decomp(ring, q, b = 2):
         for j,k in enumerate(t):
             final[j].append(k)
     return final
-        
-    
+
+
 
 def base(n, b):
     if n == 0:
