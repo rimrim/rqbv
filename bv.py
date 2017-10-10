@@ -84,6 +84,10 @@ def large_samples(n, q):
     temp = [randint(-q, q) for x in range(0, n)]
     return temp
 
+def binary_samples(n):
+    temp = [randint(0,1) for _ in range(n)]
+    return temp
+
 
 class Rq(list):
     """
@@ -177,6 +181,8 @@ class Rq(list):
             temp = temp * ori
         return temp
 
+        
+
     def rot_matrix(self):
         ret = []
         for i in range(len(self)):
@@ -202,6 +208,16 @@ class Rq(list):
         for i,j in enumerate(self):
             temp = temp + j*(x**i)
         return modmath(temp,self.q)
+
+    @staticmethod
+    def positive_q(a, q):
+        ret = []
+        for i in a:
+            if i < 0:
+                ret.append(i + q)
+                continue
+            ret.append(i)
+        return ret
 
     @staticmethod
     def add_matrix(a,b,q):
@@ -296,7 +312,68 @@ class Rq(list):
             ret += Bitarray(bit_decomp).tobytes()
         return ret
 
+class BGV(object):
+    def __init__(self, n = 4, q = 40433, t =2, alpha_q = 3):
+        super(BGV, self).__init__()
+        self.n = n
+        self.q = q
+        self.t = t
+        self.alpha_q = alpha_q
+        self.zeros = Rq(self.n, self.q, [0 for i in range(self.n)])
+        self.one = Rq(self.n, self.q, [0 for i in range(self.n)])
+        self.one[0] = 1
+        self.all_one=Rq(self.n, self.q, [1 for _ in range(self.n)])
+        
+    def small_samples_rq(self):
+        """return a Rq element"""
+        temp = small_samples(self.n, self.alpha_q)
+        ret = Rq(self.n, self.q, temp)
+        return ret
 
+    def large_samples_rq(self):
+        """return a ring element"""
+        temp = large_samples(self.n, self.q)
+        ret = Rq(self.n, self.q, temp)
+        return ret
+
+    def sec_key_gen(self):
+        one = Rq(self.n, self.q, [0 for _ in range(self.n)])
+        one[0] = 1
+        s = self.small_samples_rq()
+        return [one,s]
+
+    def pub_key_gen(self, s):
+        a = self.large_samples_rq()
+        e = self.small_samples_rq()
+        b = a*s + self.t*e
+        return [b, -1*a]
+
+    def encrypt(self, m, pk):
+        r = Rq(self.n, self.q, binary_samples(self.n))
+        return [pk[0]*r + m, pk[1]*r]
+
+    def decrypt(self, c, sk):
+        ret = Rq(self.n, self.q, [0 for _ in range(self.n)])
+        for i,j in zip(c,sk):
+            ret = ret + i*j
+        temp = []
+        for i in ret:
+            temp.append(i%self.t)
+        return Rq(self.n, self.t, temp)
+
+    def check_noise(self, c, sk):
+        ret = Rq(self.n, self.q, [0 for _ in range(self.n)])
+        for i, j in zip(c,sk):
+            ret = ret + i*j
+        return max(ret)
+
+    def add(self, c1, c2):
+        return [c1[0] + c2[0], c1[1] + c2[1]]
+
+    def mul(self, c1, c2):
+        c_temp = [c1[0]*c2[0], c1[0]*c2[1] + c2[0]*c1[1], c1[1]*c2[1]]
+        return c_temp
+        
 class BV(object):
     def __init__(self, n=3, q=40433, t=2, sigma=4):
         super(BV, self).__init__()

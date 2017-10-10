@@ -7,8 +7,87 @@ from math import log
 from unittest import TestCase
 
 from bv import poly_multiply, BV, Rq, modmath, \
-    small_samples, large_samples, rot
+    small_samples, large_samples, rot, BGV
+
+from ntt import *
 from timer import Timer
+
+class TestNTT(TestCase):
+    def test_forward(self):
+        n = 5
+        q = 11
+        invec = [1,0,0,1,1]
+        minmod = q
+        outvec = find_params_and_transform(invec, minmod)
+        print(outvec)
+        # invec = [3,945932, 973265, 75337, 102670]
+        # self.assertEqual(invec,outvec[0])
+        invec = [1,0,0,1,1]
+        # outvec = transform(invec, 293477, 1048601)
+        # print(outvec)
+    def test_inverse(self):
+        n = 5
+        q = 2**20
+        invec = [3,945932, 973265, 75337, 102670]
+        outvec = inverse_transform(invec, 293477, 1048601)
+        print(outvec)
+
+
+
+class TestBGV(TestCase):
+    def test_key_gen(self):
+        n = 5
+        q = 2**20
+        q = 1048601
+        # generator
+        # t need to be a prime to find n roots of unity
+        g = 4
+        t = 11
+        alpha_q = 3
+        
+        bgv = BGV(n, q, t, alpha_q)
+    
+        sk = bgv.sec_key_gen()
+        s = sk[1]
+        # print(sk)
+        pk = bgv.pub_key_gen(s)
+        # print(pk)
+        m = Rq(n, t, [1,0,0,1,1])
+        c = bgv.encrypt(m, pk)
+        # print(bgv.check_noise(c,sk))
+        p = bgv.decrypt(c, sk)
+        self.assertEqual(p,[1,0,0,1,1])
+
+        m2 = Rq(n, t, [1,1,1,0,0])
+        c2 = bgv.encrypt(m2, pk)
+        p2 = bgv.decrypt(c2, sk)
+        c_add = bgv.add(c,c2)
+        p_add = bgv.decrypt(c_add, sk)
+        self.assertEqual(p_add, [2,1,1,1,1])
+
+        # multiply in coefficient domain
+        c_mul = bgv.mul(c,c2)
+        # print(c_mul)
+        sk_ext = (sk[0],sk[1],sk[1]*sk[1])
+        p_mul = bgv.decrypt(c_mul, sk_ext)
+        # print(p_mul)
+        m1m2_coeff = m*m2
+        self.assertEqual(p_mul, m1m2_coeff)
+
+
+        m = Rq(n, q, [1,0,0,1,1])
+        m_crt = transform(m, g, t)
+        # print(m_crt)
+        m_crt_ring = Rq(n, t, m_crt)
+        c_crt = bgv.encrypt(m_crt_ring, pk)
+        p_crt = bgv.decrypt(c_crt, sk)
+        p_crt_positve = Rq.positive_q(p_crt, t)
+        p_inverse = inverse_transform(p_crt_positve, g, t)
+        self.assertEqual(m, p_inverse)
+        # print(p_inverse)
+
+
+        
 
 
 class TestRq(TestCase):
