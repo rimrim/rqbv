@@ -6,6 +6,8 @@ from math import floor
 from math import log
 from unittest import TestCase
 
+from bv import poly_multiply, BV, Rq, Gadget, modmath, \
+    small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring, BGV
 from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot, BGV
 
@@ -44,9 +46,9 @@ class TestBGV(TestCase):
         g = 4
         t = 11
         alpha_q = 3
-        
+
         bgv = BGV(n, q, t, alpha_q)
-    
+
         sk = bgv.sec_key_gen()
         s = sk[1]
         # print(sk)
@@ -87,7 +89,7 @@ class TestBGV(TestCase):
         # print(p_inverse)
 
 
-        
+
 
 
 class TestRq(TestCase):
@@ -97,6 +99,113 @@ class TestRq(TestCase):
     def test_init(self):
         a = Rq(n=3, q=5, coeffs=[1, 2, 3])
         self.assertEqual(a, [1, 2, -2])
+
+    def test_inner_product_Rq_with_pow_base_and_decomp(self):
+        a = Rq(n=3, q=19, coeffs=[12, 13, 14])
+        b = Rq(n=3, q=19, coeffs=[1, 2, 3])
+        c = Rq.inner_product(a, b, 19)
+        self.assertEqual(c, 4)
+        decomp_a = decomp(a, a.q)
+        decomp_a = extract_list_ring(decomp_a)
+        b_pow = pow_base(b, b.q)
+        b_pow = extract_list_ring(b_pow)
+        d = Rq.inner_product(decomp_a, b_pow, 19)
+        self.assertEqual(d, 4)
+
+    def test_pow_base(self):
+        a = Rq(n=3, q=19, coeffs=[1, 2, 3])
+        a_pow = pow_base(a, a.q)
+        print(a_pow)
+
+    def test_bit_decomp(self):
+        a = Rq(n=3, q=5, coeffs=[3, 4, 18])
+        decomp_a = decomp(a, a.q)
+        self.assertEqual(decomp_a, [[1,0,1],[1,0,1],[0,1,0]])
+
+    def test_basic_bgv(self):
+        d = 6
+        n = 1
+        q = 27
+        N = 3
+        bgv = BGV(d = d, n = n, q = q, N = N, sigma =2)
+        sec = bgv.secretKeyGen()
+        print(sec)
+
+
+
+
+    def test_base_operation(self):
+        a = 1002
+        b = base(a,2)
+        self.assertEqual(b, [0, 1, 0, 1, 0, 1 , 1, 1, 1, 1])
+        b = base(a,5)
+        self.assertEqual(b, [2, 0, 0, 3, 1])
+        c = base(a,32)
+        self.assertEqual(c, [10, 31])
+        b = base(a,16)
+        self.assertEqual(b, [10, 14, 3])
+
+    def test_flatten_list_of_ring_element(self):
+        a = Rq(n=3, q=13, coeffs=[100, 200, 300])
+        b = Rq(n=3, q=13, coeffs=[10, 20, 30])
+        c = [a, b]
+        g = Gadget(3, 4)
+        exp_c = g.forward(c)
+        d = g.backward(exp_c)
+        e = Rq(n = 3, q = 13, coeffs = d[0])
+        f = Rq(n = 3, q = 13, coeffs = d[1])
+        h = [e,f]
+        self.assertEqual(c, h)
+
+    def test_flatten_ring_element(self):
+        a = Rq(n=3, q=13, coeffs=[100, 200, 300])
+        b = [9, 5, 1]
+        g = Gadget(3, 4)
+        exp_a = g.forward(a)
+        exp_b = g.forward(b)
+        self.assertEqual(exp_a, exp_b)
+        c = g.backward(exp_a)
+        c = Rq(n = 3, q = 13, coeffs = c)
+        self.assertEqual(c, a)
+
+    def test_flatten_array_of_array_of_int(self):
+        a = [[1002,1002,1002],[1002,1002,1002],[1002,1002,1002],[1002,1002,1002]]
+        g = Gadget(16, 3)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]],[[10,14,3],[10,14,3],[10,14,3]]])
+        b = g.backward(exp_a)
+        self.assertEqual(b, a)
+
+    def test_flatten_array_of_int(self):
+        a = [1002, 1002, 1002]
+        g = Gadget(16, 3)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [[10,14,3],[10,14,3],[10,14,3]])
+        b = g.backward(exp_a)
+        self.assertEqual(b, a)
+
+
+    def test_flatten_gadget(self):
+        # a is an integer
+        a = 1002
+        b = 2
+        g = Gadget(base=b, length = 15)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [0,1,0,1,0,1,1,1,1,1,0,0,0,0,0])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
+        b = 5
+        g = Gadget(base=b, length = 5)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [2, 0, 0, 3, 1])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
+        b = 16
+        g = Gadget(base=b, length = 5)
+        exp_a = g.forward(a)
+        self.assertEqual(exp_a, [10,14,3,0,0])
+        b = g.backward(exp_a)
+        self.assertEqual(b, 1002)
 
     def test_mod_math(self):
         a = 0
