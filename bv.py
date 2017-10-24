@@ -441,6 +441,8 @@ class BGV(object):
         return [pk[0]*r + m, pk[1]*r]
 
     def decrypt(self, c, sk):
+        if len(c) > len(sk):
+            sk = (sk[0], sk[1], sk[1]*sk[1])
         ret = Rq(self.n, self.q, [0 for _ in range(self.n)])
         for i,j in zip(c,sk):
             ret = ret + i*j

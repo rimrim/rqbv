@@ -34,13 +34,18 @@ class TestNTT(TestCase):
         outvec = inverse_transform(invec, 293477, 1048601)
         print(outvec)
 
+    def test_circular_convolve(self):
+        in1 = [1,0,0,1,1]
+        in2 = [1,1,1,1,1]
+        p = circular_convolve(in1,in2)
+        print(p)
+
 
 
 class TestBGV(TestCase):
     def test_key_gen(self):
         n = 5
         q = 2**20
-        q = 1048601
         # generator
         # t need to be a prime to find n roots of unity
         g = 4
@@ -70,8 +75,8 @@ class TestBGV(TestCase):
         # multiply in coefficient domain
         c_mul = bgv.mul(c,c2)
         # print(c_mul)
-        sk_ext = (sk[0],sk[1],sk[1]*sk[1])
-        p_mul = bgv.decrypt(c_mul, sk_ext)
+        # sk_ext = (sk[0],sk[1],sk[1]*sk[1])
+        p_mul = bgv.decrypt(c_mul, sk)
         # print(p_mul)
         m1m2_coeff = m*m2
         self.assertEqual(p_mul, m1m2_coeff)
@@ -80,16 +85,45 @@ class TestBGV(TestCase):
         m = Rq(n, q, [1,0,0,1,1])
         m_crt = transform(m, g, t)
         # print(m_crt)
-        m_crt_ring = Rq(n, t, m_crt)
-        c_crt = bgv.encrypt(m_crt_ring, pk)
+        c_crt = bgv.encrypt(m_crt, pk)
         p_crt = bgv.decrypt(c_crt, sk)
         p_crt_positve = Rq.positive_q(p_crt, t)
         p_inverse = inverse_transform(p_crt_positve, g, t)
         self.assertEqual(m, p_inverse)
         # print(p_inverse)
 
-        m2 = Rq(n, q, [1,1,1,1,1])
-        # print(m*m2)
+        m1 = Rq(n, t, [1,0,0,1,1])
+        m2 = Rq(n, t, [1,0,1,1,1])
+        # print(m1*m2)
+
+        m1crt = inverse_transform(m1, g, t)
+        m2crt = inverse_transform(m2, g, t)
+        m1crt = Rq(n, t, m1crt)
+        m2crt = Rq(n, t, m2crt)
+        pro = m1crt*m2crt
+        pro = Rq.positive_q(pro, t)
+        print(transform(pro, g, t))
+
+        c1 = bgv.encrypt(m1crt, pk)
+        c2 = bgv.encrypt(m2crt, pk)
+
+        c_add = bgv.mul(c1,c2)
+        p_add = bgv.decrypt(c_add, sk)
+        p_add_pos = Rq.positive_q(p_add, t)
+        p_add_inv = transform(p_add_pos, g, t)
+        print(p_add_inv)
+#         self.assertEqual(p_add_inv, [2,0,1,2,2])
+#
+        c_mul = bgv.mul(c1,c2)
+        p_mul = bgv.decrypt(c_mul, sk)
+        # print(p_mul)
+        p_mul_pos = Rq.positive_q(p_mul, t)
+        # print(p_mul_pos)
+        p_mul_inv = inverse_transform(p_mul_pos, g, t)
+        print(p_mul_inv)
+
+
+
 
 
 
