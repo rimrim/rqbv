@@ -29,9 +29,9 @@ class TestNTT(TestCase):
         # print(outvec)
     def test_inverse(self):
         n = 5
-        q = 2**20
-        invec = [3,945932, 973265, 75337, 102670]
-        outvec = inverse_transform(invec, 293477, 1048601)
+        q = 11
+        invec = [3,2,3,9,10]
+        outvec = inverse_transform(invec, 4, 11)
         print(outvec)
 
     def test_circular_convolve(self):
@@ -121,6 +121,27 @@ class TestBGV(TestCase):
         # print(p_mul_pos)
         p_mul_inv = inverse_transform(p_mul_pos, g, t)
         print(p_mul_inv)
+
+    def test_ntt(self):
+        n = 5
+        t = 11
+        g = 4
+        m1 = Rq(n, t, [1,0,0,1,1])
+        m2 = Rq(n, t, [1,0,1,1,1])
+        # print(m1*m2)
+
+        m1crt = inverse_transform(m1, g, t)
+        m2crt = inverse_transform(m2, g, t)
+        print(m1crt)
+        print(m2crt)
+        pro = Rq(n, t, [3, 1, 6, 6, 1])
+        # m1crt = Rq(n, t, m1crt)
+        # m2crt = Rq(n, t, m2crt)
+        # pro = m1crt*m2crt
+        pro = Rq.positive_q(pro, t)
+        res = (transform(pro, g, t))
+        print(res)
+
 
 
 
