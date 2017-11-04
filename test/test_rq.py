@@ -6,6 +6,8 @@ from math import floor
 from math import log
 from unittest import TestCase
 
+import math
+
 from bv import poly_multiply, BV, Rq, Gadget, modmath, \
     small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring, BGV
 from bv import poly_multiply, BV, Rq, modmath, \
@@ -13,32 +15,125 @@ from bv import poly_multiply, BV, Rq, modmath, \
 
 from ntt import *
 from timer import Timer
+from os import path, remove
+
+import logging, autologging
+
+
+@autologging.logged(logging.getLogger('homocrypto'))
+class TestOperationOnPlainText(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_HD(self):
+        n = 10
+        x = [1 for _ in range(n)]
+        y = [0 for _ in range(n)]
+        y[0] = 1
+        y[1] = 1
+        y[n - 1] = 1
+        y[n - 2] = 1
+        y[n//2] = 1
+
+        def rot(l, n):
+            return l[n:] + l[:n]
+        def add(l1, l2):
+            return [x + y for x,y in zip(l1, l2)]
+
+        def hamming_weight(z):
+            # lay nua sau
+            n  = len(z)
+            while(n != 1):
+                n = math.ceil(n/2)
+                z1 = z[:n]
+                z2 = z[n:]
+                if(len(z2) < len(z1)):
+                    z2.append(0)
+                z = add(z1, z2)
+            return z[0]
+
+        def hamming_distance(x,y):
+            z = []
+            for i,j in zip(x,y):
+                t = (i + j) % 2
+                z.append(t)
+            return hamming_weight(z)
+        self.assertEqual(hamming_distance(x,y), 5)
+
+
+
 
 class TestNTT(TestCase):
     def test_forward(self):
         n = 5
         q = 11
         invec = [1,0,0,1,1]
-        minmod = q
-        outvec = find_params_and_transform(invec, minmod)
-        print(outvec)
-        # invec = [3,945932, 973265, 75337, 102670]
-        # self.assertEqual(invec,outvec[0])
-        invec = [1,0,0,1,1]
-        # outvec = transform(invec, 293477, 1048601)
-        # print(outvec)
+        outvec = transform(invec, 4, 11)
+        self.assertEqual([3,2,3,9,10], outvec)
+
     def test_inverse(self):
         n = 5
         q = 11
         invec = [3,2,3,9,10]
         outvec = inverse_transform(invec, 4, 11)
-        print(outvec)
+        self.assertEqual(outvec, [1,0,0,1,1])
 
     def test_circular_convolve(self):
         in1 = [1,0,0,1,1]
         in2 = [1,1,1,1,1]
         p = circular_convolve(in1,in2)
         print(p)
+
+    def test_mult_componentwise(self):
+        n = 10
+        t = 11
+        g = 2
+        in1 = [1,1,0,1,1,0,0,1,0,0]
+        # print(transform(in1, g, t))
+        in2 = [1,0,0,0,1,0,0,1,0,0]
+        # print(transform(in2, g, t))
+        inv1 = inverse_transform(in1,g, t)
+        inv2 = inverse_transform(in2,g, t)
+
+        cir = circular_convolve(inv1,inv2)
+        cirmod = [i%t for i in cir]
+
+        compwise = transform(cirmod, g, 11)
+
+        self.assertEqual(compwise,[1,0,0,0,1,0,0,1,0,0])
+
+    def test_XOR(self):
+        # t XOR q = t + q - 2tq, component wise, not circular convolution
+        n = 10
+        t = 11
+        g = 2
+        in1 = [1,1,0,1,1,0,0,1,0,0]
+        in2 = [1,0,0,0,1,0,0,1,0,0]
+        add = [i + j for i,j in zip(in1, in2)]
+
+        # first way, cannot be applied with ciphertext, noise will be large
+        mul2 = [-2*i*j for i,j in zip(in1, in2)]
+        xor1 = [i + j for i,j in zip(add, mul2)]
+
+        #second way, can be applied in cihpertext, noise will be small
+        inv1 = inverse_transform(in1,g, t)
+        inv2 = inverse_transform(in2,g, t)
+
+        # mul homomorphically
+        cir = circular_convolve(inv1,inv2)
+        cirmod = [i%t for i in cir]
+
+        compwise = transform(cirmod, g, 11)
+        # mul with const -2
+        mul2 = [-2*i for i in compwise]
+        xor2 = [i + j for i,j in zip(add, mul2)]
+        self.assertEqual(xor1,xor2)
+
+
+
 
 
 
@@ -68,20 +163,23 @@ class TestBGV(TestCase):
         m2 = Rq(n, t, [1,1,1,0,0])
         c2 = bgv.encrypt(m2, pk)
         p2 = bgv.decrypt(c2, sk)
+        # addition homomorphically
         c_add = bgv.add(c,c2)
         p_add = bgv.decrypt(c_add, sk)
         self.assertEqual(p_add, [2,1,1,1,1])
+        # substraction homomorphically
+        c_sub = bgv.subs(c,c2)
+        p_sub = bgv.decrypt(c_sub, sk)
+        self.assertEqual(p_sub, [0,-1,-1,1,1])
 
-        # multiply in coefficient domain
+
+        # multiply in coefficient domain, circular convolution
         c_mul = bgv.mul(c,c2)
-        # print(c_mul)
-        # sk_ext = (sk[0],sk[1],sk[1]*sk[1])
         p_mul = bgv.decrypt(c_mul, sk)
-        # print(p_mul)
         m1m2_coeff = m*m2
         self.assertEqual(p_mul, m1m2_coeff)
 
-
+        # multiply component wise, using NTT
         m = Rq(n, q, [1,0,0,1,1])
         m_crt = transform(m, g, t)
         # print(m_crt)
@@ -141,11 +239,6 @@ class TestBGV(TestCase):
         pro = Rq.positive_q(pro, t)
         res = (transform(pro, g, t))
         print(res)
-
-
-
-
-
 
 
 
@@ -1095,6 +1188,7 @@ class TestBV(TestCase):
         nttf = [f.evaluate_at(1),f.evaluate_at(221),f.evaluate_at(332)]
 
         h = f*g
+
 if __name__ == '__main__':
     unittest.main()
 

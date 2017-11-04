@@ -8,6 +8,25 @@ from scipy.fftpack import fft, ifft
 from scipy import signal
 from numpy import real, base_repr, convolve
 
+import logging
+from autologging import logged
+from os import path, remove
+
+if path.isfile('homocrypto.log'):
+    remove('homocrypto.log')
+
+logger = logging.getLogger('homocrypto')
+logger.setLevel(logging.DEBUG)
+
+logger_handler = logging.FileHandler('homocrypto.log')
+logger_handler.setLevel(logging.DEBUG)
+logger_formatter = logging.Formatter('%(levelname)s - %(message)s')
+logger_handler.setFormatter(logger_formatter)
+
+logger.addHandler(logger_handler)
+logger.info('completed configure logger %s'%logger.name)
+
+@logged(logging.getLogger('homocrypto'))
 class Gadget(object):
     """Flattening gadget utility"""
     def __init__(self, base, length):
@@ -400,6 +419,7 @@ class Rq(list):
             ret += Bitarray(bit_decomp).tobytes()
         return ret
 
+@logged(logging.getLogger('homocrypto'))
 class BGV(object):
     def __init__(self, n = 4, q = 40433, t =2, alpha_q = 3):
         super(BGV, self).__init__()
@@ -425,12 +445,14 @@ class BGV(object):
         return ret
 
     def sec_key_gen(self):
+        self.__log.info('generating secret key')
         one = Rq(self.n, self.q, [0 for _ in range(self.n)])
         one[0] = 1
         s = self.small_samples_rq()
         return [one,s]
 
     def pub_key_gen(self, s):
+        self.__log.info('generating public key')
         a = self.large_samples_rq()
         e = self.small_samples_rq()
         b = a*s + self.t*e
@@ -459,6 +481,9 @@ class BGV(object):
 
     def add(self, c1, c2):
         return [c1[0] + c2[0], c1[1] + c2[1]]
+
+    def subs(self, c1, c2):
+        return [c1[0] - c2[0], c1[1] - c2[1]]
 
     def mul(self, c1, c2):
         c_temp = [c1[0]*c2[0], c1[0]*c2[1] + c2[0]*c1[1], c1[1]*c2[1]]
