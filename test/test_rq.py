@@ -72,7 +72,7 @@ class TestNTT(TestCase):
         q = 11
         invec = [1,0,0,1,1]
         outvec = transform(invec, 4, 11)
-        self.assertEqual([3,2,3,9,10], outvec)
+        self.assertEqual([3,2,3,-2,-1], outvec)
 
     def test_inverse(self):
         n = 5
@@ -85,16 +85,14 @@ class TestNTT(TestCase):
         in1 = [1,0,0,1,1]
         in2 = [1,1,1,1,1]
         p = circular_convolve(in1,in2)
-        print(p)
+        pass
 
     def test_mult_componentwise(self):
         n = 10
         t = 11
         g = 2
         in1 = [1,1,0,1,1,0,0,1,0,0]
-        # print(transform(in1, g, t))
         in2 = [1,0,0,0,1,0,0,1,0,0]
-        # print(transform(in2, g, t))
         inv1 = inverse_transform(in1,g, t)
         inv2 = inverse_transform(in2,g, t)
 
@@ -132,9 +130,78 @@ class TestNTT(TestCase):
         xor2 = [i + j for i,j in zip(add, mul2)]
         self.assertEqual(xor1,xor2)
 
+    def test_circular_conv(self):
+        n = 5
+        t = 11
+        g = 4
+        in1 = [1,0,0,1,1]
+        out1 = transform(in1, g, t)
+        inv = inverse_transform(out1, 4, t)
+        in2 = [1,1,1,0,1]
+        out2 = transform(in2, g, t)
+        compwise = [(i*j)%t for i,j in zip(out1,out2)]
+        a = (inverse_transform(compwise,g,t))
+        b = (circular_convolve(in1,in2))
+        # print(b)
+        self.assertEqual(a,b)
+
+    def test_scale_change_mod(self):
+        t = 17
+        g = 9
+        psi = 3
+        n = 8
+        in1 = [1,0,0,1,1,0,1,1]
+        in2 = [1,0,0,0,1,0,0,1]
+        in1 = Rq(n, t, in1)
+        in2 = Rq(n, t, in2)
+
+        nttp = transform_plus(in1, g, psi, t)
+        in3 = [-1, -1, -2, 4, 8, -5, 0, 5]
+        inntp = inverse_transform_plus(in3, g, psi, t)
+
+        convp = convolution_plus(in1,in2,g,psi,t)
+        self.assertEqual(convp, in1*in2)
 
 
+    def test_ntt_the_other_root(self):
+        t = 17
+        g = 9
+        psi = 3
+        n = 8
+        in1 = [1,0,0,1,1,0,1,1]
+        # out1 = find_params_and_transform(in1, t)
+        out1 = transform(in1, g, t)
+        in2 = [1,0,0,0,0,0,0,1]
+        out2 = transform(in2, g, t)
+        conv = circular_convolve(in1, in2)
 
+        # first way of computing product mod x^n + 1, have to pad with 0s
+        in1 = [1,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0]
+        in2 = [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0]
+        conv = circular_convolve(in1, in2)
+        conv = Rq(8, t, conv)
+
+        # second way of computing mod x^n + 1
+        sin1 = []
+        sin2 = []
+        for i in range(n):
+            sin1.append((psi**i)*in1[i])
+            sin2.append((psi**i)*in2[i])
+        sin1 = Rq(n, t, sin1)
+        sin2 = Rq(n, t, sin2)
+        convsin = circular_convolve(sin1,sin2)
+        psiinv = reciprocal(psi, t)
+        invs = []
+        for i in range(n):
+            invs.append(psiinv**i)
+        invs = Rq(n, t, invs)
+        prod = [i*j for i,j in zip(convsin,invs)]
+        prod = Rq(n, t, prod)
+        self.assertEqual(prod, conv)
+
+        in1 = [1,0,0,1,1,0,1,1]
+        in2 = [1,0,0,0,0,0,0,1]
+        # print(ntt_ring_mult(in1,in2,g,t))
 
 
 class TestBGV(TestCase):
@@ -151,9 +218,7 @@ class TestBGV(TestCase):
 
         sk = bgv.sec_key_gen()
         s = sk[1]
-        # print(sk)
         pk = bgv.pub_key_gen(s)
-        # print(pk)
         m = Rq(n, t, [1,0,0,1,1])
         c = bgv.encrypt(m, pk)
         # print(bgv.check_noise(c,sk))
@@ -179,46 +244,107 @@ class TestBGV(TestCase):
         m1m2_coeff = m*m2
         self.assertEqual(p_mul, m1m2_coeff)
 
+    def ntt_of_enc(self):
+        n = 5
+        q = 2**20
+        g = 4
+        t = 11
+        alpha_q = 3
+
+        bgv = BGV(n, q, t, alpha_q)
+
+        sk = bgv.sec_key_gen()
+        s = sk[1]
+        pk = bgv.pub_key_gen(s)
+
+        a = Rq(n, t, [1,1,0,1,1])
+        ntta = transform(a, g, t)
+        c1 = bgv.encrypt(ntta, pk)
+        print(c1)
+
+        enca = bgv.encrypt(a, pk)
+        c2 = transform(enca[0], g, t)
+        c3 = transform(enca[1], g, t)
+        print(c2)
+        print(c3)
+
+
+    def test_mul_comp(self):
+        n = 5
+        q = 2**20
+        # generator
+        # t need to be a prime to find n roots of unity
+        g = 4
+        t = 11
+        alpha_q = 3
+
+        bgv = BGV(n, q, t, alpha_q)
+
+        sk = bgv.sec_key_gen()
+        s = sk[1]
+        pk = bgv.pub_key_gen(s)
+
         # multiply component wise, using NTT
-        m = Rq(n, q, [1,0,0,1,1])
-        m_crt = transform(m, g, t)
-        # print(m_crt)
-        c_crt = bgv.encrypt(m_crt, pk)
-        p_crt = bgv.decrypt(c_crt, sk)
-        p_crt_positve = Rq.positive_q(p_crt, t)
-        p_inverse = inverse_transform(p_crt_positve, g, t)
-        self.assertEqual(m, p_inverse)
-        # print(p_inverse)
+        m1 = Rq(n, t, [1,1,0,1,1])
+        m2 = Rq(n, t, [1,0,0,0,1])
+        # first need to encode them interms of iNTT
+        # try in the plaintext first
+        im1 = inverse_transform(m1,g,t)
+        # print(im1)
+        # im1 = Rq(n, t, im1)
+        im2 = inverse_transform(m2,g,t)
+        # im2 = Rq(n, t, im2)
+        # print(im2)
 
-        m1 = Rq(n, t, [1,0,0,1,1])
-        m2 = Rq(n, t, [1,0,1,1,1])
-        # print(m1*m2)
+        polymul = ntt_poly_mult(im1, im2, g, t)
+        # print('ntt poly mult %s'%polymul)
 
-        m1crt = inverse_transform(m1, g, t)
-        m2crt = inverse_transform(m2, g, t)
-        m1crt = Rq(n, t, m1crt)
-        m2crt = Rq(n, t, m2crt)
-        pro = m1crt*m2crt
-        pro = Rq.positive_q(pro, t)
-        print(transform(pro, g, t))
+        cir = circular_convolve(im1,im2)
+        # print('x^n - 1 poly mult im1 im2 %s'%cir)
+        cirmod = Rq(n, t, cir)
+        # print('x^n - 1 poly mult mod t %s'%cirmod)
+        compwise = transform(cirmod, g, t)
+        self.assertEqual(compwise,[1,0,0,0,1])
 
-        c1 = bgv.encrypt(m1crt, pk)
-        c2 = bgv.encrypt(m2crt, pk)
+        # now the ciphertexts
+        cim1 = bgv.encrypt(im1, pk)
+        pim1 = bgv.decrypt(cim1,sk)
+        # print('first plaintext %s'%pim1)
+        cim2 = bgv.encrypt(im2, pk)
+        pim2 = bgv.decrypt(cim2, sk)
+        # print('second plaintext %s'%pim2)
+        # print('ring mult %s'%(pim1*pim2))
+        # print(cirmod)
+        cir = bgv.mul(cim1,cim2)
+        plaincir = bgv.decrypt(cir, sk)
 
-        c_add = bgv.mul(c1,c2)
-        p_add = bgv.decrypt(c_add, sk)
-        p_add_pos = Rq.positive_q(p_add, t)
-        p_add_inv = transform(p_add_pos, g, t)
-        print(p_add_inv)
-#         self.assertEqual(p_add_inv, [2,0,1,2,2])
-#
-        c_mul = bgv.mul(c1,c2)
-        p_mul = bgv.decrypt(c_mul, sk)
-        # print(p_mul)
-        p_mul_pos = Rq.positive_q(p_mul, t)
-        # print(p_mul_pos)
-        p_mul_inv = inverse_transform(p_mul_pos, g, t)
-        print(p_mul_inv)
+        n = 5
+        t = 11
+        g = 4
+        in1 = [1,1,0,1,1]
+        in2 = [1,0,0,0,1]
+        inv1 = inverse_transform(in1,g, t)
+        inv2 = inverse_transform(in2,g, t)
+
+        cir = circular_convolve(inv1,inv2)
+        cirmod = [i%t for i in cir]
+
+        compwise = transform(cirmod, g, t)
+
+        self.assertEqual(compwise,[1,0,0,0,1])
+        # print(im1*im2)
+        # encrypt the new encoding
+        # cim1 = bgv.encrypt(im1,pk)
+        # cim2 = bgv.encrypt(im2,pk)
+        # # mult homomorphically
+        # mulcomp = bgv.mul(cim1, cim2)
+        # # decrypt
+        # plainmult = bgv.decrypt(mulcomp,sk)
+        # plainmult = Rq.positive_q(plainmult, t)
+        # # NTT again
+        # mult = transform(plainmult, g, t)
+        # print(mult)
+
 
     def test_ntt(self):
         n = 5
@@ -230,17 +356,15 @@ class TestBGV(TestCase):
 
         m1crt = inverse_transform(m1, g, t)
         m2crt = inverse_transform(m2, g, t)
-        print(m1crt)
-        print(m2crt)
+        # print(m1crt)
+        # print(m2crt)
         pro = Rq(n, t, [3, 1, 6, 6, 1])
         # m1crt = Rq(n, t, m1crt)
         # m2crt = Rq(n, t, m2crt)
         # pro = m1crt*m2crt
         pro = Rq.positive_q(pro, t)
         res = (transform(pro, g, t))
-        print(res)
-
-
+        # print(res)
 
 
 class TestRq(TestCase):
@@ -266,7 +390,7 @@ class TestRq(TestCase):
     def test_pow_base(self):
         a = Rq(n=3, q=19, coeffs=[1, 2, 3])
         a_pow = pow_base(a, a.q)
-        print(a_pow)
+        # print(a_pow)
 
     def test_bit_decomp(self):
         a = Rq(n=3, q=5, coeffs=[3, 4, 18])
@@ -502,7 +626,6 @@ class TestRq(TestCase):
         self.assertEqual(Rq.hd_plain(a,b),2)
         a = Rq(n=3, q=5, coeffs=[0, 1, 1])
         self.assertEqual(Rq.hd_plain(a,b),3)
-
 
 
 class TestBV(TestCase):
@@ -1063,16 +1186,16 @@ class TestBV(TestCase):
 
         c1 = bv.enc(m1, pk)
         p1 = bv.dec(c1, sk)
-        print('noise for 1 fresh ciphertext %s'%bv.last_noise)
+        # print('noise for 1 fresh ciphertext %s'%bv.last_noise)
         c2 = bv.enc(m2, pk)
         mult1 = bv.mult(c1,c2)
         dec_mult1 = bv.dec(mult1, sk)
-        print('noise for 1st level of mult %s'%bv.last_noise)
+        # print('noise for 1st level of mult %s'%bv.last_noise)
 
         c3 = bv.enc(m3, pk)
         mult2 = bv.mult(mult1, c3)
         dec_mult2 = bv.dec(mult2, sk)
-        print('noise for 1 extra mult %s'%bv.last_noise)
+        # print('noise for 1 extra mult %s'%bv.last_noise)
         # print('q is %s'%bv.q)
 
         c4 = bv.enc(m4, pk)
@@ -1179,7 +1302,7 @@ class TestBV(TestCase):
     def test_double_crt(self):
         f = [10,20,30]
         from numpy import fft
-        print(fft.fft(f))
+        # print(fft.fft(f))
         g = [50,60,70]
         n = 3
         q = 385

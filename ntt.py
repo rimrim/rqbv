@@ -14,6 +14,9 @@ import itertools, numbers
 # Finds an appropriate set of parameters for the NTT, computes the forward transform on
 # the given vector, and returns a tuple containing the output vector and NTT parameters.
 # Note that all input values must be integers in the range [0, minmod).
+from bv import Rq
+
+
 def find_params_and_transform(invec, minmod):
     check_int(minmod)
     mod = find_modulus(len(invec), minmod)
@@ -28,7 +31,7 @@ def transform(invec, root, mod):
     check_int(mod)
     if len(invec) >= mod:
         raise ValueError()
-    if not all((0 <= val < mod) for val in invec):
+    if not all(val < mod for val in invec):
         raise ValueError()
     if not (1 <= root < mod):
         raise ValueError()
@@ -40,7 +43,7 @@ def transform(invec, root, mod):
             temp += val * pow(root, i * j, mod)
             temp %= mod
         outvec.append(temp)
-    return outvec
+    return Rq(len(outvec), mod, outvec)
 
 
 # Returns the inverse number-theoretic transform of the given vector with
@@ -48,7 +51,30 @@ def transform(invec, root, mod):
 def inverse_transform(invec, root, mod):
     outvec = transform(invec, reciprocal(root, mod), mod)
     scaler = reciprocal(len(invec), mod)
-    return [(val * scaler % mod) for val in outvec]
+    temp = [(val * scaler % mod) for val in outvec]
+    return Rq(len(temp), mod, temp)
+
+def transform_plus(invec, root, squareroot, mod):
+    temp = []
+    n = len(invec)
+    for i in range(n):
+        temp.append(invec[i]*(squareroot**i))
+    temp = Rq(n, mod, temp)
+    return transform(temp, root, mod)
+
+def inverse_transform_plus(invec, root, squareroot, mod):
+    temp = inverse_transform(invec, root, mod)
+    invsquare = reciprocal(squareroot, mod)
+    for i in range(len(temp)):
+        temp[i] = temp[i] * (invsquare**i)
+    return Rq(len(temp), mod, temp)
+
+def convolution_plus(in1, in2, root, squareroot, mod):
+    t1 = transform_plus(in1, root, squareroot, mod)
+    t2 = transform_plus(in2, root, squareroot, mod)
+    t3 = [i*j for (i,j) in zip(t1,t2)]
+    t3 = Rq(len(t3),mod,t3)
+    return inverse_transform_plus(t3,root, squareroot, mod)
 
 
 # Computes the forward number-theoretic transform of the given vector in place,
@@ -100,8 +126,8 @@ def transform_radix_2(vector, root, mod):
 def circular_convolve(vec0, vec1):
     if not (0 < len(vec0) == len(vec1)):
         raise ValueError()
-    if any((val < 0) for val in itertools.chain(vec0, vec1)):
-        raise ValueError()
+    # if any((val < 0) for val in itertools.chain(vec0, vec1)):
+    #     raise ValueError()
     maxval = max(val for val in itertools.chain(vec0, vec1))
     minmod = maxval ** 2 * len(vec0) + 1
     temp0, root, mod = find_params_and_transform(vec0, minmod)
@@ -109,6 +135,27 @@ def circular_convolve(vec0, vec1):
     temp2 = [(x * y % mod) for (x, y) in zip(temp0, temp1)]
     return inverse_transform(temp2, root, mod)
 
+def ntt_poly_mult(vec0, vec1, root, mod):
+    # circular convolution modulo x^n -1 , known root and mod
+    if not (0 < len(vec0) == len(vec1)):
+        raise ValueError()
+    # if any((val < 0) for val in itertools.chain(vec0, vec1)):
+    #     raise ValueError()
+    temp0 = transform(vec0, root, mod)
+    temp1 = transform(vec1, root, mod)
+    temp2 = [(x * y % mod) for (x, y) in zip(temp0, temp1)]
+    return Rq(len(vec0), mod, inverse_transform(temp2, root, mod))
+
+def ntt_ring_mult(vec0, vec1, root, mod):
+    # negative wrap convolution, mod x^n + 1,
+
+    # find square root modulo of root: k^2 = root % mod
+    # if k exists then root^(N-1)/2 = 1 % mod
+    zeros = [0 for _ in range(len(vec0))]
+    temp0 = vec0 + zeros
+    temp1 = vec1 + zeros
+    ret = circular_convolve(temp0,temp1)
+    return Rq(len(vec0), mod, ret)
 
 # ---- Mid-level number theory functions for NTT ----
 
