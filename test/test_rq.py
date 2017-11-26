@@ -8,12 +8,15 @@ from unittest import TestCase
 
 import math
 
+import random
+
 from bv import poly_multiply, BV, Rq, Gadget, modmath, \
     small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring, BGV
 from bv import poly_multiply, BV, Rq, modmath, \
     small_samples, large_samples, rot, BGV
 
 from ntt import *
+from mymath import *
 from timer import Timer
 from os import path, remove
 
@@ -29,7 +32,7 @@ class TestOperationOnPlainText(TestCase):
         pass
 
     def test_HD(self):
-        n = 10
+        n = 16
         x = [1 for _ in range(n)]
         y = [0 for _ in range(n)]
         y[0] = 1
@@ -55,18 +58,39 @@ class TestOperationOnPlainText(TestCase):
                 z = add(z1, z2)
             return z[0]
 
+        def hamming_weight2(c):
+            for i in range(math.floor(math.log(n,2))):
+                temp = rot(c, 2**i)
+                c = add(c, temp)
+            return c[0]
+
+        z = []
+        for i,j in zip(x,y):
+            t = (i + j) % 2
+            z.append(t)
+        print(x)
+        print(y)
+        print(hamming_weight2(z))
+
         def hamming_distance(x,y):
             z = []
             for i,j in zip(x,y):
                 t = (i + j) % 2
                 z.append(t)
             return hamming_weight(z)
-        self.assertEqual(hamming_distance(x,y), 5)
-
-
+        self.assertEqual(hamming_distance(x,y), 11)
 
 
 class TestNTT(TestCase):
+    def test_speed(self):
+        n = 2**10
+        invec = [random.randint(0,1) for _ in range(n)]
+        omega = 10302
+        q = 12289
+        outvec = []
+        with Timer() as t:
+            outvec = transform(invec, omega, q)
+        print("time to do ntt %s"%t.msecs)
     def test_forward(self):
         n = 5
         q = 11
@@ -204,6 +228,16 @@ class TestNTT(TestCase):
         # print(ntt_ring_mult(in1,in2,g,t))
 
 
+
+def set_up_params(n, qbits):
+    if not is_power2(n):
+        raise ValueError("n must be power of 2")
+    q = next_prime(2**qbits)
+    if (q-1) % (2*n) != 0:
+        q = next_prime(q+1)
+    return q
+
+
 class TestBGV(TestCase):
     def test_key_gen(self):
         n = 5
@@ -243,31 +277,6 @@ class TestBGV(TestCase):
         p_mul = bgv.decrypt(c_mul, sk)
         m1m2_coeff = m*m2
         self.assertEqual(p_mul, m1m2_coeff)
-
-    def ntt_of_enc(self):
-        n = 5
-        q = 2**20
-        g = 4
-        t = 11
-        alpha_q = 3
-
-        bgv = BGV(n, q, t, alpha_q)
-
-        sk = bgv.sec_key_gen()
-        s = sk[1]
-        pk = bgv.pub_key_gen(s)
-
-        a = Rq(n, t, [1,1,0,1,1])
-        ntta = transform(a, g, t)
-        c1 = bgv.encrypt(ntta, pk)
-        print(c1)
-
-        enca = bgv.encrypt(a, pk)
-        c2 = transform(enca[0], g, t)
-        c3 = transform(enca[1], g, t)
-        print(c2)
-        print(c3)
-
 
     def test_mul_comp(self):
         n = 5
@@ -344,6 +353,39 @@ class TestBGV(TestCase):
         # # NTT again
         # mult = transform(plainmult, g, t)
         # print(mult)
+        
+    def test_find_square_root(self):
+        n = 4
+        k = 10
+        q = n*k + 1
+        g = find_generator(q-1, q)
+        omega = modmath(g**k, q)
+        psi = square_root_mod(q, n)
+        self.assertEqual(modmath(psi*psi, q), omega)
+
+    def test_set_up_params(self):
+        n = 16
+        qbits = 8
+        q = set_up_params(n, qbits)
+        self.assertTrue(is_prime(q))
+        self.assertTrue(is_power2(n))
+        self.assertTrue((q-1)%(2*n) == 0)
+
+    def test_rotate(self):
+        n = 4
+        n = 4
+        k = 10
+        q = n*k + 1
+        g = find_generator(q-1, q)
+        omega = modmath(g**k, q)
+        psi = square_root_mod(q, n)
+        in1 = [1,2,3,4]
+        nttin1 = transform_plus(in1, omega, psi, q)
+        print(nttin1)
+        print(inverse_transform_plus(nttin1, omega, psi, q))
+
+        in2 = [-1, -4, -10, 19]
+        print(inverse_transform_plus(in2, omega, psi, q))
 
 
     def test_ntt(self):

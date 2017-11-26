@@ -33,7 +33,7 @@ def transform(invec, root, mod):
         raise ValueError()
     if not all(val < mod for val in invec):
         raise ValueError()
-    if not (1 <= root < mod):
+    if not (root < mod):
         raise ValueError()
 
     outvec = []
@@ -243,6 +243,8 @@ def is_primitive_root(val, degree, mod):
 def reciprocal(n, mod):
     check_int(n)
     check_int(mod)
+    if n < 0:
+        n = mod + n
     if not (0 <= n < mod):
         raise ValueError()
     x, y = mod, n

@@ -130,8 +130,8 @@ def modmath(a, b):
     # type: (int, int) -> int
     c = a % b
     if c > b / 2:
-        return c - b
-    return c
+        return int(c - b)
+    return int(c)
 
 
 def rot(a):
@@ -201,7 +201,7 @@ class Rq(list):
     notes: can't asign a list to a Rq object, eg a = [1,2,3]
     """
 
-    def __init__(self, n=3, q=5, coeffs=[]):
+    def __init__(self, n=4, q=41, coeffs=[]):
         self.n = n
         self.q = q
 

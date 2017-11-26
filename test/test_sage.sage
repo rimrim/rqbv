@@ -1,4 +1,23 @@
 # -*- mode: sage-shell:sage -*-
+def test_sage_number_theory():
+    # to construct a univariate ring, variable t
+    R.<t> = PolynomialRing(QQ)
+    # from here on can use t as symbolic variable
+    f = t^5 + t^2 - 1
+    print(factor(f))
+    # to change coefficents to list
+    print(list(f))
+    # can do normal polynomial operations
+    g = t^3
+    print(f+g)
+    print(f + g^2)
+    h=(R.cyclotomic_polynomial(10))
+    print(h)
+    k = t^10 - 1
+    print(k/h)
+
+test_sage_number_theory()
+
 def test( ):
     print("hello world")
 
@@ -12,18 +31,93 @@ def bit_samples(n):
     temp = [randint(0, 1) for x in range(0, n)]
     return temp
 
+# def eval_poly(f, n , q, var):
+#     Z = GF(q)
+#     d = var('d')
+#     R = PolynomialRing(Z,'d')
+#     S = R.quotient(d^n + 1, 'a')
+#     a = S.gen()
+
+#     t = f(x=x^var)
+#     return S(t)
+
 # example of ring init
-# n = 3
-# q = random_prime(2**10)
+
+# n = 16
+# q = 257
 # Z = GF(q)
 # R = PolynomialRing(Z,'x')
 # S = R.quotient(x^n + 1, 'a')
 # a = S.gen()
-# b = [1,2,3,4,5,6,7,8,9,0,1]
+# b = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
 # c = S(b)
-# print(c)
-# # A = random_matrix(S,3,2)
+
+# x = var('x')
+# f = c[0] + c[1]*x + c[2]*x^2 + c[3]*x^3 + c[4]*x^4 + c[5]*x^5 + c[6]*x^6 + c[7]*x^7 + c[8]*x^8 + \
+#     c[9]*x^9 + c[10]*x^10 + c[11]*x^11 + c[12]*x^12 + c[13]*x^13 + c[14]*x^14 + c[15]*x^15 + c[16]*x^16
+
+# t = f(x=x^3)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^5)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^7)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^9)
+# rot = S(t)
+# print(rot)
+
+# t = f(x=x^11)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^13)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^15)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^17)
+# rot = S(t)
+# print(rot)
+
+# t = f(x=x^19)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^21)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^23)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^25)
+# rot = S(t)
+# print(rot)
+
+# t = f(x=x^27)
+# rot = S(t)
+# print(rot)
+
+# t = f(x=x^29)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^31)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^33)
+# rot = S(t)
+# print(rot)
+# t = f(x=x^35)
+# rot = S(t)
+# print(rot)
+
+
+
+
+# A = random_matrix(S,3,2)
 # print(A)
+
 
 def E_Setup(qbits, d, n = 1, sigma=3):
     ret = {}

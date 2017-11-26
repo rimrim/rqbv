@@ -18,3 +18,4 @@ c4 = -a*r2
 dec = c1*c3 + s*(c1*c4 + c2*c3) + (s^2)*(c2*c4)
 
 print(dec.expand().collect(m1*m2))
+
