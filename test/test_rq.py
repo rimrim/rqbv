@@ -10,10 +10,8 @@ import math
 
 import random
 
-from bv import poly_multiply, BV, Rq, Gadget, modmath, \
-    small_samples, large_samples, rot, base, decomp, pow_base, extract_list_ring, BGV
-from bv import poly_multiply, BV, Rq, modmath, \
-    small_samples, large_samples, rot, BGV
+from auth_protocol import AuthProtocol, Substractor, GarbleCircuit, Comparator, dec, enc
+from bv import poly_multiply, BV, BGV, small_samples, large_samples
 
 from ntt import *
 from mymath import *
@@ -21,6 +19,100 @@ from timer import Timer
 from os import path, remove
 
 import logging, autologging
+
+class Test_GC(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_print_truth_table(self):
+        for j in (0,1):
+            for l in (0,1):
+                for m in (0,1):
+                    print(j, l, m)
+
+    def test_aes(self):
+        gc = GarbleCircuit()
+        k = b'b'*16
+        m = b'a'*16
+        c = enc(k, m)
+        p = dec(k, c)
+        self.assertEqual(p,m)
+
+    def test_garble_a_gate_substractor(self):
+        gc = GarbleCircuit()
+        subs = Substractor()
+        gc.garble(subs)
+        self.assertEqual(len(subs.garbled_keys_in[0][0]),16)
+
+        k0 = subs.garbled_keys_in[0][0]
+        k1 = subs.garbled_keys_in[1][0]
+        k2 = subs.garbled_keys_in[2][0]
+        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[0][0])))
+        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[0][1])))
+        self.assertEqual(out0, subs.garbled_keys_out[0][0])
+        self.assertEqual(out1, subs.garbled_keys_out[1][0])
+
+
+        k0 = subs.garbled_keys_in[0][0]
+        k1 = subs.garbled_keys_in[1][0]
+        k2 = subs.garbled_keys_in[2][1]
+        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[1][0])))
+        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[1][1])))
+        self.assertEqual(out0, subs.garbled_keys_out[0][1])
+        self.assertEqual(out1, subs.garbled_keys_out[1][1])
+
+        k0 = subs.garbled_keys_in[0][0]
+        k1 = subs.garbled_keys_in[1][1]
+        k2 = subs.garbled_keys_in[2][0]
+        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[2][0])))
+        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[2][1])))
+        self.assertEqual(out0, subs.garbled_keys_out[0][1])
+        self.assertEqual(out1, subs.garbled_keys_out[1][1])
+
+
+    def test_garble_a_gate_comparator(self):
+        gc = GarbleCircuit()
+        comp = Comparator()
+        gc.garble(comp)
+        self.assertEqual(len(comp.garbled_keys_in[0][0]),16)
+
+        k0 = comp.garbled_keys_in[0][0]
+        k1 = comp.garbled_keys_in[1][0]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[0]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+        k0 = comp.garbled_keys_in[0][0]
+        k1 = comp.garbled_keys_in[1][1]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[1]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+        k0 = comp.garbled_keys_in[0][1]
+        k1 = comp.garbled_keys_in[1][0]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[2]))
+        self.assertEqual(out, comp.garbled_keys_out[0][1])
+
+        k0 = comp.garbled_keys_in[0][1]
+        k1 = comp.garbled_keys_in[1][1]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[3]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+
+        # subs = Substractor()
+        # ciphertexts = gc.garble(subs)
+        # self.assertEqual(len(subs.garbled_keys_out[0][0]),16)
+
+    def test_substractor(self):
+        s = Substractor()
+        s.input[0] = 0
+        s.input[1] = 1
+        s.input[2] = 0
+        s.eval()
+        self.assertEqual(s.output[0],1)
+        self.assertEqual(s.output[1],1)
+
 
 
 @autologging.logged(logging.getLogger('homocrypto'))
@@ -82,6 +174,150 @@ class TestOperationOnPlainText(TestCase):
 
 
 class TestNTT(TestCase):
+
+    def test_ntt_bar(self):
+        n = 8
+        qbits = 5
+        q = set_up_params(n, qbits)
+        print('n = %s'%n)
+        print('q = %s'%q)
+        k = (q-1)//n
+        print('k = %s'%k)
+        g = find_generator(q-1, q)
+        omega = modmath(g**k, q)
+        print('omega = %s'%omega)
+        psi = square_root_mod(q, n)
+        print('psi = %s'%psi)
+        a = [1,1,1,4,5,6,7,8]
+        a = Rq(n,q,a)
+
+        x_j = 1
+        y_j = 0
+        a0 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(0+y_j)))))
+        a1 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(0+y_j)))))
+        a2 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(0+y_j)))))
+        a3 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(0+y_j)))))
+        a4 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(1+y_j)))))
+        a5 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(1+y_j)))))
+        a6 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(1+y_j)))))
+        a7 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(1+y_j)))))
+        abar = [a0,a1,a2,a3,a4,a5,a6,a7]
+        abar = Rq(n, q, abar)
+
+        abar2 = transform_plus_bar(a, omega, psi, q)
+        self.assertEqual(abar, abar2)
+
+
+    def test_new_ntt_order(self):
+        n = 8
+        qbits = 3
+        q = set_up_params(n, qbits)
+        # print('n = %s'%n)
+        # print('q = %s'%q)
+        k = (q-1)//n
+        # print('k = %s'%k)
+        g = find_generator(q-1, q)
+        omega = modmath(g**k, q)
+        # print('omega = %s'%omega)
+        psi = square_root_mod(q, n)
+        # print('psi = %s'%psi)
+        a = [1,1,1,4,5,6,7,8]
+        a = Rq(n,q,a)
+        ahat = transform_plus(a, omega, psi, q)
+        # print(ahat)
+        x_j = 1
+        y_j = 0
+
+        a0 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(0+y_j)))))
+        a1 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(0+y_j)))))
+        a2 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(0+y_j)))))
+        a3 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(0+y_j)))))
+        a4 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(1+y_j)))))
+        a5 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(1+y_j)))))
+        a6 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(1+y_j)))))
+        a7 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(1+y_j)))))
+        abar = [a0,a1,a2,a3,a4,a5,a6,a7]
+        abar = Rq(n, q, abar)
+        print(abar)
+
+        x_j = 2
+        y_j = 0
+        a0 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(0+y_j)))))
+        a1 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(0+y_j)))))
+        a2 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(0+y_j)))))
+        a3 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(0+y_j)))))
+        a4 = (a.evaluate_at(psi**((3**(0 + x_j))*((n-1)**(1+y_j)))))
+        a5 = (a.evaluate_at(psi**((3**(1 + x_j))*((n-1)**(1+y_j)))))
+        a6 = (a.evaluate_at(psi**((3**(2 + x_j))*((n-1)**(1+y_j)))))
+        a7 = (a.evaluate_at(psi**((3**(3 + x_j))*((n-1)**(1+y_j)))))
+        rot1 = [a0,a1,a2,a3,a4,a5,a6,a7]
+        rot1 = Rq(n, q, rot1)
+        print(rot1)
+
+    def test_ntt_and_ntt_plus_evaluate_at(self):
+        n = 8
+        qbits = 5
+        q = set_up_params(n, qbits)
+        print('n = %s'%n)
+        print('q = %s'%q)
+        k = (q-1)//n
+        print('k = %s'%k)
+        g = find_generator(q-1, q)
+        omega = modmath(g**k, q)
+        print('omega = %s'%omega)
+        psi = square_root_mod(q, n)
+        print('psi = %s'%psi)
+        in1 = [1,2,3,4,5,6,7,8]
+        in1 = Rq(n, q, in1)
+        nttin1 = transform(in1,omega,q)
+        self.assertEqual(inverse_transform(nttin1, omega, q),in1)
+        self.assertEqual(in1.evaluate_at(1),nttin1[0])
+        self.assertEqual(in1.evaluate_at(omega),nttin1[1])
+        self.assertEqual(in1.evaluate_at(omega**2),nttin1[2])
+        self.assertEqual(in1.evaluate_at(omega**3),nttin1[3])
+        self.assertEqual(in1.evaluate_at(omega**4),nttin1[4])
+        self.assertEqual(in1.evaluate_at(omega**5),nttin1[5])
+        self.assertEqual(in1.evaluate_at(omega**6),nttin1[6])
+        self.assertEqual(in1.evaluate_at(omega**7),nttin1[7])
+
+        ntt_plus_1 = transform_plus(in1,omega,psi,q)
+        inv_ntt_plus_1 = inverse_transform_plus(ntt_plus_1, omega, psi, q)
+        self.assertEqual(inv_ntt_plus_1, in1)
+        self.assertEqual(in1.evaluate_at(psi), ntt_plus_1[0])
+        self.assertEqual(in1.evaluate_at(psi**3), ntt_plus_1[1])
+        self.assertEqual(in1.evaluate_at(psi**5), ntt_plus_1[2])
+        self.assertEqual(in1.evaluate_at(psi**7), ntt_plus_1[3])
+        self.assertEqual(in1.evaluate_at(psi**9), ntt_plus_1[4])
+        self.assertEqual(in1.evaluate_at(psi**11), ntt_plus_1[5])
+        self.assertEqual(in1.evaluate_at(psi**13), ntt_plus_1[6])
+        self.assertEqual(in1.evaluate_at(psi**15), ntt_plus_1[7])
+        #
+        # in2 = [-1, -4, -10, 19]
+        # print(inverse_transform_plus(in2, omega, psi, q))
+
+
+    def test_ntt(self):
+        n = 5
+        t = 11
+        g = 4
+        m1 = Rq(n, t, [1,0,0,1,1])
+        m2 = Rq(n, t, [1,0,1,1,1])
+        # print(m1*m2)
+
+        m1crt = inverse_transform(m1, g, t)
+        m2crt = inverse_transform(m2, g, t)
+        # print(m1crt)
+        # print(m2crt)
+        pro = Rq(n, t, [3, 1, 6, 6, 1])
+        # m1crt = Rq(n, t, m1crt)
+        # m2crt = Rq(n, t, m2crt)
+        # pro = m1crt*m2crt
+        pro = Rq.positive_q(pro, t)
+        res = (transform(pro, g, t))
+        # print(res)
+
+
+
     def test_speed(self):
         n = 2**10
         invec = [random.randint(0,1) for _ in range(n)]
@@ -229,13 +465,6 @@ class TestNTT(TestCase):
 
 
 
-def set_up_params(n, qbits):
-    if not is_power2(n):
-        raise ValueError("n must be power of 2")
-    q = next_prime(2**qbits)
-    if (q-1) % (2*n) != 0:
-        q = next_prime(q+1)
-    return q
 
 
 class TestBGV(TestCase):
@@ -370,43 +599,6 @@ class TestBGV(TestCase):
         self.assertTrue(is_prime(q))
         self.assertTrue(is_power2(n))
         self.assertTrue((q-1)%(2*n) == 0)
-
-    def test_rotate(self):
-        n = 4
-        n = 4
-        k = 10
-        q = n*k + 1
-        g = find_generator(q-1, q)
-        omega = modmath(g**k, q)
-        psi = square_root_mod(q, n)
-        in1 = [1,2,3,4]
-        nttin1 = transform_plus(in1, omega, psi, q)
-        print(nttin1)
-        print(inverse_transform_plus(nttin1, omega, psi, q))
-
-        in2 = [-1, -4, -10, 19]
-        print(inverse_transform_plus(in2, omega, psi, q))
-
-
-    def test_ntt(self):
-        n = 5
-        t = 11
-        g = 4
-        m1 = Rq(n, t, [1,0,0,1,1])
-        m2 = Rq(n, t, [1,0,1,1,1])
-        # print(m1*m2)
-
-        m1crt = inverse_transform(m1, g, t)
-        m2crt = inverse_transform(m2, g, t)
-        # print(m1crt)
-        # print(m2crt)
-        pro = Rq(n, t, [3, 1, 6, 6, 1])
-        # m1crt = Rq(n, t, m1crt)
-        # m2crt = Rq(n, t, m2crt)
-        # pro = m1crt*m2crt
-        pro = Rq.positive_q(pro, t)
-        res = (transform(pro, g, t))
-        # print(res)
 
 
 class TestRq(TestCase):

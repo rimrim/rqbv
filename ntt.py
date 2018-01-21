@@ -62,6 +62,21 @@ def transform_plus(invec, root, squareroot, mod):
     temp = Rq(n, mod, temp)
     return transform(temp, root, mod)
 
+def transform_plus_bar(invec, root, squareroot, mod):
+    t = transform_plus(invec, root, squareroot, mod)
+    n = len(invec)
+    ret = ['' for _ in range(n)]
+    count = 0
+    for k in range(2):
+        for j in range(1, n//2+1):
+            index = ((3**j)*((n-1)**k)) % (2*n)
+            index = (index - 1 )//2
+            ret[count] = t[index]
+            count = count + 1
+    return ret
+
+
+
 def inverse_transform_plus(invec, root, squareroot, mod):
     temp = inverse_transform(invec, root, mod)
     invsquare = reciprocal(squareroot, mod)
