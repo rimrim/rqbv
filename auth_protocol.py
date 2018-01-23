@@ -31,7 +31,7 @@ class GarbleCircuit(object):
             key1 = os.urandom(16)
             gate.garbled_keys_out[i] = (key0, key1)
 
-        if gate.type == 'comparator':
+        if gate.type == 'general':
             for i in (0,1):
                 for j in (0,1):
                     gate.input[0] = i
@@ -58,14 +58,63 @@ class GarbleCircuit(object):
                                      enc(gate.garbled_keys_in[0][i],gate.garbled_keys_out[1][gate.output[1]])))
                         gate.garbled_ciphertexts.append((c0,c1))
 
-class Comparator(object):
+
+class GateSimple(object):
+    # 2 input 1 output gates
     def __init__(self):
         self.input = [0 for _ in range(2)]
         self.output = [0 for _ in range(1)]
         self.garbled_keys_in = ['' for _ in range(2)]
         self.garbled_keys_out = ['']
         self.garbled_ciphertexts = []
-        self.type = 'comparator'
+        self.type = 'general'
+
+class GateXNOr(GateSimple):
+    def __init__(self):
+        super().__init__()
+
+    def eval(self):
+        if self.input[0] == 0 and self.input[1] == 0:
+            self.output[0] = 1
+        if self.input[0] == 0 and self.input[1] == 1:
+            self.output[0] = 0
+        if self.input[0] == 1 and self.input[1] == 0:
+            self.output[0] = 0
+        if self.input[0] == 1 and self.input[1] == 1:
+            self.output[0] = 1
+
+class GateOr(GateSimple):
+    def __init__(self):
+        super().__init__()
+
+    def eval(self):
+        if self.input[0] == 0 and self.input[1] == 0:
+            self.output[0] = 0
+        if self.input[0] == 0 and self.input[1] == 1:
+            self.output[0] = 1
+        if self.input[0] == 1 and self.input[1] == 0:
+            self.output[0] = 1
+        if self.input[0] == 1 and self.input[1] == 1:
+            self.output[0] = 1
+
+class GateAnd(GateSimple):
+    def __init__(self):
+        super().__init__()
+
+    def eval(self):
+        if self.input[0] == 0 and self.input[1] == 0:
+            self.output[0] = 0
+        if self.input[0] == 0 and self.input[1] == 1:
+            self.output[0] = 0
+        if self.input[0] == 1 and self.input[1] == 0:
+            self.output[0] = 0
+        if self.input[0] == 1 and self.input[1] == 1:
+            self.output[0] = 1
+
+
+class Comparator(GateSimple):
+    def __init__(self):
+        super().__init__()
 
     def eval(self):
         if self.input[0] == 0 and self.input[1] == 0:
@@ -120,14 +169,77 @@ class AuthProtocol(object):
         self.xor = []
 
     def generate_circuit(self, l = 10):
-        # self.generate_substractors(l)
-        # self.generate_comparators(l)
-        # self.generate_xor(l)
-        pass
+        for i in range(l):
+            subs = Substractor()
+            self.substractors.append(subs)
 
-    def generate_comparator(self):
-        pass
+        for i in range(l):
+            comp = Comparator()
+            self.comparators.append(comp)
 
     def print_circuit(self):
         print('number of substractors ' + str(len(self.substractors)))
         print('number of comparators ' + str(len(self.comparators)))
+
+# class Comparator10Bits(object):
+#     def __init__(self):
+#         self.input = [0 for _ in range(20)]
+#         self.output = [0 for _ in range(1)]
+#         self.garbled_keys_in = ['' for _ in range(20)]
+#         self.garbled_keys_out = ['']
+#         self.garbled_ciphertexts = []
+#         self.type = 'comparator10bits'
+#
+#     def eval(self):
+#         # greater than
+#         if self.input[0] < self.input[1]:
+#             return 0
+#         elif self.input[0] > self.input[1]:
+#             return 1
+#         else:
+#             if self.input[2] < self.input[3]:
+#                 return 0
+#             elif self.input[2] > self.input[3]:
+#                 return 1
+#             else:
+#                 if self.input[4] < self.input[5]:
+#                     return 0
+#                 elif self.input[4] > self.input[5]:
+#                     return 1
+#                 else:
+#                     if self.input[6] < self.input[7]:
+#                         return 0
+#                     elif self.input[6] > self.input[7]:
+#                         return 1
+#                     else:
+#                         if self.input[8] < self.input[9]:
+#                             return 0
+#                         elif self.input[8] > self.input[9]:
+#                             return 1
+#                         else:
+#                             if self.input[10] < self.input[11]:
+#                                 return 0
+#                             elif self.input[10] > self.input[11]:
+#                                 return 1
+#                             else:
+#                                 if self.input[12] < self.input[13]:
+#                                     return 0
+#                                 elif self.input[12] > self.input[13]:
+#                                     return 1
+#                                 else:
+#                                     if self.input[14] < self.input[15]:
+#                                         return 0
+#                                     elif self.input[14] > self.input[15]:
+#                                         return 1
+#                                     else:
+#                                         if self.input[16] < self.input[17]:
+#                                             return 0
+#                                         elif self.input[16] > self.input[17]:
+#                                             return 1
+#                                         else:
+#                                             if self.input[18] < self.input[19]:
+#                                                 return 0
+#                                             elif self.input[18] > self.input[19]:
+#                                                 return 1
+#                                             else:
+#                                                 return 1

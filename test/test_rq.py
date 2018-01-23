@@ -5,12 +5,13 @@ import cProfile
 from math import floor
 from math import log
 from unittest import TestCase
+from bitstring import BitArray
 
 import math
 
 import random
 
-from auth_protocol import AuthProtocol, Substractor, GarbleCircuit, Comparator, dec, enc
+from auth_protocol import AuthProtocol, Substractor, GarbleCircuit, Comparator, dec, enc, GateAnd, GateOr, GateXNOr
 from bv import poly_multiply, BV, BGV, small_samples, large_samples
 
 from ntt import *
@@ -99,10 +100,88 @@ class Test_GC(TestCase):
         out = dec(k0,dec(k1,comp.garbled_ciphertexts[3]))
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
+    def test_garble_a_gate_and(self):
+        gc = GarbleCircuit()
+        comp = GateAnd()
+        gc.garble(comp)
+        self.assertEqual(len(comp.garbled_keys_in[0][0]),16)
 
-        # subs = Substractor()
-        # ciphertexts = gc.garble(subs)
-        # self.assertEqual(len(subs.garbled_keys_out[0][0]),16)
+        k0 = comp.garbled_keys_in[0][0]
+        k1 = comp.garbled_keys_in[1][0]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[0]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+        k0 = comp.garbled_keys_in[0][0]
+        k1 = comp.garbled_keys_in[1][1]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[1]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+        k0 = comp.garbled_keys_in[0][1]
+        k1 = comp.garbled_keys_in[1][0]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[2]))
+        self.assertEqual(out, comp.garbled_keys_out[0][0])
+
+        k0 = comp.garbled_keys_in[0][1]
+        k1 = comp.garbled_keys_in[1][1]
+        out = dec(k0,dec(k1,comp.garbled_ciphertexts[3]))
+        self.assertEqual(out, comp.garbled_keys_out[0][1])
+
+    def test_xnor(self):
+        a = GateXNOr()
+        a.input[0] = 1
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],1)
+        a.input[0] = 0
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],0)
+        a.input[0] = 0
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],1)
+        a.input[0] = 1
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],0)
+
+    def test_and_or(self):
+        a = GateOr()
+        a.input[0] = 1
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],1)
+        a.input[0] = 0
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],1)
+        a.input[0] = 0
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],0)
+        a.input[0] = 1
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],1)
+
+    def test_and_gate(self):
+        a = GateAnd()
+        a.input[0] = 1
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],1)
+        a.input[0] = 0
+        a.input[1] = 1
+        a.eval()
+        self.assertEqual(a.output[0],0)
+        a.input[0] = 0
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],0)
+        a.input[0] = 1
+        a.input[1] = 0
+        a.eval()
+        self.assertEqual(a.output[0],0)
 
     def test_substractor(self):
         s = Substractor()
@@ -112,6 +191,37 @@ class Test_GC(TestCase):
         s.eval()
         self.assertEqual(s.output[0],1)
         self.assertEqual(s.output[1],1)
+
+    def test_generate_circuit(self):
+        auth = AuthProtocol()
+        # check whether a - b > tau or not, in plaintext
+        circ = auth.generate_circuit(l = 4)
+        a = BitArray('0b1011')
+        b = BitArray('0b0101')
+        # 11 - 5 = 6
+        l = 4
+        tau = BitArray('0b1000')
+
+        for i in range(l-1,-1,-1):
+            auth.substractors[i].input[0] = int(a[i])
+            auth.substractors[i].input[1] = int(b[i])
+            auth.substractors[i].eval()
+            if i > 0:
+                auth.substractors[i-1].input[2] = auth.substractors[i].output[1]
+
+        for i in range(l):
+            auth.comparators[i].input[0] = auth.substractors[l-1-i].output[0]
+            auth.comparators[i].input[1] = int(tau[i])
+            auth.comparators[i].eval()
+
+        for i in auth.comparators:
+            if i.output[0] == 1:
+                print('yes')
+                return
+        print('no')
+
+
+
 
 
 

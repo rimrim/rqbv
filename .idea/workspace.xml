@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="f2a1b69b-6a62-43d5-8719-7648edb0567a" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/auth_protocol.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/test_func.py" />
+    <list default="true" id="f2a1b69b-6a62-43d5-8719-7648edb0567a" name="Default" comment="restructure, implement garble circuit">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bv.py" afterPath="$PROJECT_DIR$/bv.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/mymath.py" afterPath="$PROJECT_DIR$/mymath.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ntt.py" afterPath="$PROJECT_DIR$/ntt.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/auth_protocol.py" afterPath="$PROJECT_DIR$/auth_protocol.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/test_rq.py" afterPath="$PROJECT_DIR$/test/test_rq.py" />
     </list>
     <ignored path="test/GPATH" />
@@ -35,6 +31,7 @@
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_forward.coverage" NAME="Unittests for test_rq.TestNTT.test_forward Coverage Results" MODIFIED="1510952948120" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_XOR.coverage" NAME="Unittests for test_rq.TestNTT.test_XOR Coverage Results" MODIFIED="1509756413911" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_in_test_variant_1_py.coverage" NAME="Unittests in test_variant_1.py Coverage Results" MODIFIED="1504173898986" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_and_or.coverage" NAME="Unittests for test_rq.Test_GC.test_and_or Coverage Results" MODIFIED="1516690323033" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV.coverage" NAME="Unittests for test_rq.TestBGV Coverage Results" MODIFIED="1510549468503" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV_test_ntt_and_ntt_plus_evaluate_at.coverage" NAME="Unittests for test_rq.TestBGV.test_ntt_and_ntt_plus_evaluate_at Coverage Results" MODIFIED="1512803247255" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestRq_test_inner_product_Rq_with_pow_base_and_decomp.coverage" NAME="Unittests for test_rq.TestRq.test_inner_product_Rq_with_pow_base_and_decomp Coverage Results" MODIFIED="1513039249585" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
@@ -42,7 +39,9 @@
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_comparator.coverage" NAME="Unittests for test_rq.Test_GC.test_comparator Coverage Results" MODIFIED="1516513736408" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV_test_rotate.coverage" NAME="Unittests for test_rq.TestBGV.test_rotate Coverage Results" MODIFIED="1512802931861" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_aes.coverage" NAME="Unittests for test_rq.Test_GC.test_aes Coverage Results" MODIFIED="1516530243913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
-    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_generate_circuit.coverage" NAME="Unittests for test_rq.Test_GC.test_generate_circuit Coverage Results" MODIFIED="1516514210814" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_garble_a_gate_and.coverage" NAME="Unittests for test_rq.Test_GC.test_garble_a_gate_and Coverage Results" MODIFIED="1516690586557" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_generate_circuit.coverage" NAME="Unittests for test_rq.Test_GC.test_generate_circuit Coverage Results" MODIFIED="1516582583989" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_and_gate.coverage" NAME="Unittests for test_rq.Test_GC.test_and_gate Coverage Results" MODIFIED="1516686998436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_new_ntt_order.coverage" NAME="Unittests for test_rq.TestNTT.test_new_ntt_order Coverage Results" MODIFIED="1513122161415" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_ntt_bar.coverage" NAME="Unittests for test_rq.TestNTT.test_ntt_bar Coverage Results" MODIFIED="1513140476279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_variant_1_MyTestCase_test_whole_protocol.coverage" NAME="Unittests for test_variant_1.MyTestCase.test_whole_protocol Coverage Results" MODIFIED="1504112484500" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -50,6 +49,7 @@
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor.coverage" NAME="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor Coverage Results" MODIFIED="1516531950137" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV_test_set_up_params.coverage" NAME="Unittests for test_rq.TestBGV.test_set_up_params Coverage Results" MODIFIED="1512803110887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV_test_key_gen.coverage" NAME="Unittests for test_rq.TestBGV.test_key_gen Coverage Results" MODIFIED="1510549497985" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC_test_xnor.coverage" NAME="Unittests for test_rq.Test_GC.test_xnor Coverage Results" MODIFIED="1516690426609" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_inverse.coverage" NAME="Unittests for test_rq.TestNTT.test_inverse Coverage Results" MODIFIED="1509758235125" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_variant_1_TestSchnorrProtocol_test_schnoor_based_ktx.coverage" NAME="Unittests for test_variant_1.TestSchnorrProtocol.test_schnoor_based_ktx Coverage Results" MODIFIED="1504296419338" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_variant_1_MyTestCase_test_record_time.coverage" NAME="Unittests for test_variant_1.MyTestCase.test_record_time Coverage Results" MODIFIED="1504112342909" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -58,6 +58,7 @@
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestBGV_test_new_ntt_order.coverage" NAME="Unittests for test_rq.TestBGV.test_new_ntt_order Coverage Results" MODIFIED="1513038254614" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_func_FunctionalTest_test_protocol4.coverage" NAME="Unittests for test_func.FunctionalTest.test_protocol4 Coverage Results" MODIFIED="1513477853209" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT.coverage" NAME="Unittests for test_rq.TestNTT Coverage Results" MODIFIED="1513059992876" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
+    <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_Test_GC.coverage" NAME="Unittests for test_rq.Test_GC Coverage Results" MODIFIED="1516686738354" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_in_test_rq_py.coverage" NAME="Unittests in test_rq.py Coverage Results" MODIFIED="1516069434401" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_rq_TestNTT_test_circular_conv.coverage" NAME="Unittests for test_rq.TestNTT.test_circular_conv Coverage Results" MODIFIED="1509791229164" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test" />
     <SUITE FILE_PATH="coverage/rqbv$Unittests_for_test_variant_1_MyTestCase_test_record_call_back.coverage" NAME="Unittests for test_variant_1.MyTestCase.test_record_call_back Coverage Results" MODIFIED="1504110443979" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -80,21 +81,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="numbers.py" pinned="false" current-in-tab="false">
-        <entry file="file:///usr/local/Cellar/python3/3.6.2/Frameworks/Python.framework/Versions/3.6/lib/python3.6/numbers.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4395">
-              <caret line="293" column="6" lean-forward="false" selection-start-line="293" selection-start-column="6" selection-end-line="293" selection-end-column="6" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="test_rq.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/test/test_rq.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="72" column="58" lean-forward="false" selection-start-line="72" selection-start-column="58" selection-end-line="72" selection-end-column="58" />
+            <state relative-caret-position="0">
+              <caret line="95" column="55" lean-forward="false" selection-start-line="95" selection-start-column="55" selection-end-line="95" selection-end-column="55" />
               <folding>
                 <element signature="e#0#38#0" expanded="true" />
               </folding>
@@ -105,7 +96,7 @@
       <file leaf-file-name="auth_protocol.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/auth_protocol.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-484">
+            <state relative-caret-position="150">
               <caret line="54" column="0" lean-forward="false" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
@@ -126,18 +117,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mymath.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/mymath.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1815">
-              <caret line="126" column="4" lean-forward="false" selection-start-line="126" selection-start-column="4" selection-end-line="126" selection-end-column="4" />
-              <folding>
-                <element signature="e#81#107#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="homocrypto.log" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test/homocrypto.log">
           <provider selected="true" editor-type-id="LogFileEditorProvider">
@@ -150,8 +129,8 @@
       <file leaf-file-name="case.py" pinned="false" current-in-tab="false">
         <entry file="file:///usr/local/Cellar/python3/3.6.2/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/case.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="8865">
-              <caret line="604" column="0" lean-forward="false" selection-start-line="604" selection-start-column="0" selection-end-line="604" selection-end-column="0" />
+            <state relative-caret-position="120">
+              <caret line="828" column="0" lean-forward="false" selection-start-line="828" selection-start-column="0" selection-end-line="828" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -206,9 +185,9 @@
     <detection-done>true</detection-done>
     <sorting>DEFINITION_ORDER</sorting>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds">
     <option name="y" value="23" />
-    <option name="width" value="1147" />
+    <option name="width" value="1280" />
     <option name="height" value="777" />
   </component>
   <component name="ProjectLevelVcsManager">
@@ -267,8 +246,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_substractor">
-    <configuration name="Unittests for test_rq.Test_GC.test_aes" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_and">
+    <configuration name="Unittests for test_rq.Test_GC" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -280,10 +259,10 @@
       <module name="rqbv" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_rq.Test_GC.test_aes&quot;" />
+      <option name="_new_target" value="&quot;test_rq.Test_GC&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test_rq.Test_GC.test_and_gate" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -295,10 +274,10 @@
       <module name="rqbv" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_rq.Test_GC.test_garble_a_gate&quot;" />
+      <option name="_new_target" value="&quot;test_rq.Test_GC.test_and_gate&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_comparator" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test_rq.Test_GC.test_and_or" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -310,10 +289,10 @@
       <module name="rqbv" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_rq.Test_GC.test_garble_a_gate_comparator&quot;" />
+      <option name="_new_target" value="&quot;test_rq.Test_GC.test_and_or&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_and" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -325,10 +304,10 @@
       <module name="rqbv" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_rq.Test_GC.test_garble_a_gate_substractor&quot;" />
+      <option name="_new_target" value="&quot;test_rq.Test_GC.test_garble_a_gate_and&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
-    <configuration name="Unittests for test_rq.Test_GC.test_print_truth_table" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+    <configuration name="Unittests for test_rq.Test_GC.test_xnor" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs />
@@ -340,7 +319,7 @@
       <module name="rqbv" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="_new_additionalArguments" value="&quot;&quot;" />
-      <option name="_new_target" value="&quot;test_rq.Test_GC.test_print_truth_table&quot;" />
+      <option name="_new_target" value="&quot;test_rq.Test_GC.test_xnor&quot;" />
       <option name="_new_targetType" value="&quot;PYTHON&quot;" />
     </configuration>
     <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
@@ -545,19 +524,19 @@
       <method />
     </configuration>
     <list size="5">
-      <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate" />
-      <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_print_truth_table" />
-      <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_aes" />
-      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_comparator" />
-      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" />
+      <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC" />
+      <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_and_gate" />
+      <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_and_or" />
+      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_xnor" />
+      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_and" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" />
-        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_comparator" />
-        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_aes" />
-        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate" />
-        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_print_truth_table" />
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_garble_a_gate_and" />
+        <item index="1" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_xnor" />
+        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_and_or" />
+        <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC.test_and_gate" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests for test_rq.Test_GC" />
       </list>
     </recent_temporary>
   </component>
@@ -617,39 +596,46 @@
       <option name="project" value="LOCAL" />
       <updated>1510549415616</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="restructure, implement garble circuit">
+      <created>1516532023192</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1516532023192</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 42m 34s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC - 2018.01.23 at 16h 52m 20s.xml">
+      <configuration name="Unittests for test_rq.Test_GC" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 42m 39s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_gate - 2018.01.23 at 16h 56m 04s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_gate" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 42m 58s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_gate - 2018.01.23 at 16h 56m 13s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_gate" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 44m 41s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_gate - 2018.01.23 at 16h 56m 24s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_gate" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 45m 15s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_gate - 2018.01.23 at 16h 56m 40s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_gate" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 47m 18s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_or - 2018.01.23 at 17h 51m 38s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_or" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 47m 38s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_and_or - 2018.01.23 at 17h 52m 04s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_and_or" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 48m 52s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_and - 2018.01.23 at 17h 55m 59s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_and" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 52m 16s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_and - 2018.01.23 at 17h 56m 28s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_and" configurationId="tests" />
     </history-entry>
-    <history-entry file="Unittests_for_test_rq_Test_GC_test_garble_a_gate_substractor - 2018.01.21 at 21h 52m 31s.xml">
-      <configuration name="Unittests for test_rq.Test_GC.test_garble_a_gate_substractor" configurationId="tests" />
+    <history-entry file="Unittests_for_test_rq_Test_GC_test_xnor - 2018.01.23 at 17h 53m 47s.xml">
+      <configuration name="Unittests for test_rq.Test_GC.test_xnor" configurationId="tests" />
     </history-entry>
   </component>
   <component name="TodoView">
@@ -662,7 +648,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1280" height="777" extended-state="6" />
+    <frame x="0" y="23" width="1280" height="777" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23257919" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
@@ -675,7 +661,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1542811" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.45014662" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.313783" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -729,20 +715,26 @@
     <MESSAGE value="testing NTT library by nakita" />
     <MESSAGE value="add logging and some tests re component wise operations" />
     <MESSAGE value="implement ntt in modˆ x^n + 1" />
-    <option name="LAST_COMMIT_MESSAGE" value="implement ntt in modˆ x^n + 1" />
+    <MESSAGE value="restructure, implement garble circuit" />
+    <option name="LAST_COMMIT_MESSAGE" value="restructure, implement garble circuit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/test/test_rq.py</url>
-          <line>417</line>
+          <line>527</line>
           <option name="timeStamp" value="17" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/test/test_rq.py</url>
-          <line>322</line>
+          <line>432</line>
           <option name="timeStamp" value="18" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/test/test_rq.py</url>
+          <line>211</line>
+          <option name="timeStamp" value="41" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -752,7 +744,7 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="33" />
+      <option name="time" value="42" />
     </breakpoint-manager>
     <watches-manager>
       <configuration name="tests">
@@ -764,23 +756,6 @@
     </watches-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/test/test_rq.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test_variant_1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2940">
-          <caret line="206" column="18" lean-forward="false" selection-start-line="206" selection-start-column="18" selection-end-line="206" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/test_sage.sage">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1068,14 +1043,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/local/Cellar/python3/3.6.2/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/case.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8865">
-          <caret line="604" column="0" lean-forward="false" selection-start-line="604" selection-start-column="0" selection-end-line="604" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/test/homocrypto.log">
       <provider selected="true" editor-type-id="LogFileEditorProvider">
         <state relative-caret-position="15">
@@ -1089,22 +1056,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mymath.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1815">
-          <caret line="126" column="4" lean-forward="false" selection-start-line="126" selection-start-column="4" selection-end-line="126" selection-end-column="4" />
-          <folding>
-            <element signature="e#81#107#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ntt.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="605">
           <caret line="71" column="25" lean-forward="false" selection-start-line="71" selection-start-column="25" selection-end-line="71" selection-end-column="25" />
           <folding>
             <element signature="e#215#240#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/python3.6/site-packages/bitarray/test_bitarray.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1797">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/python3.6/site-packages/bitarray/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="242">
+          <caret line="135" column="32" lean-forward="false" selection-start-line="135" selection-start-column="32" selection-end-line="135" selection-end-column="32" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/mymath.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="51" column="16" lean-forward="false" selection-start-line="51" selection-start-column="16" selection-end-line="51" selection-end-column="16" />
+          <folding>
+            <element signature="e#81#107#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1119,9 +1102,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///usr/local/Cellar/python3/3.6.2/Frameworks/Python.framework/Versions/3.6/lib/python3.6/unittest/case.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="828" column="0" lean-forward="false" selection-start-line="828" selection-start-column="0" selection-end-line="828" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/auth_protocol.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-484">
+        <state relative-caret-position="150">
           <caret line="54" column="0" lean-forward="false" selection-start-line="54" selection-start-column="0" selection-end-line="54" selection-end-column="0" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
@@ -1131,8 +1122,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/test_rq.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="300">
-          <caret line="72" column="58" lean-forward="false" selection-start-line="72" selection-start-column="58" selection-end-line="72" selection-end-column="58" />
+        <state relative-caret-position="0">
+          <caret line="95" column="55" lean-forward="false" selection-start-line="95" selection-start-column="55" selection-end-line="95" selection-end-column="55" />
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
