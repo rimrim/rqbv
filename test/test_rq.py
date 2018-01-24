@@ -208,38 +208,73 @@ class Test_GC(TestCase):
 
     def test_generate_garble_circuit(self):
         auth = AuthProtocol()
-
+        gc = GarbleCircuit()
         l = 4
-        auth.generate_random_keys_for_circuit(l)
+        gc.generate_random_keys_for_circuit(l)
         for i in range(l):
-            auth.comparators[i].garbled_keys_in[1] = (b'b'*16,b'b'*16)
+            gc.comparators[i].garbled_keys_in[1] = (b'b'*16,b'b'*16)
 
-        auth.generate_gc(l)
+        gc.generate_gc(l)
         for i in range(l):
-            self.assertEqual(auth.comparators[i].garbled_keys_in[0],auth.substractors[i].garbled_keys_out[0])
+            self.assertEqual(gc.comparators[i].garbled_keys_in[0],gc.substractors[i].garbled_keys_out[0])
             if i != (l-1):
-                self.assertEqual(auth.comparators[i].garbled_keys_out[0],auth.ors[i].garbled_keys_in[1])
+                self.assertEqual(gc.comparators[i].garbled_keys_out[0],gc.ors[i].garbled_keys_in[1])
             else:
-                self.assertEqual(auth.comparators[i].garbled_keys_out[0],auth.ands[i-1].garbled_keys_in[0])
+                self.assertEqual(gc.comparators[i].garbled_keys_out[0],gc.ands[i-1].garbled_keys_in[0])
             if i < l -2:
-                self.assertEqual(auth.ors[i].garbled_keys_in[0], auth.ands[i].garbled_keys_out[0])
-                self.assertEqual(auth.xnors[i].garbled_keys_in[0], auth.substractors[i].garbled_keys_out[0])
-                self.assertEqual(auth.xnors[i].garbled_keys_out[0], auth.ands[i].garbled_keys_in[1])
+                self.assertEqual(gc.ors[i].garbled_keys_in[0], gc.ands[i].garbled_keys_out[0])
+                self.assertEqual(gc.xnors[i].garbled_keys_in[0], gc.substractors[i].garbled_keys_out[0])
+                self.assertEqual(gc.xnors[i].garbled_keys_out[0], gc.ands[i].garbled_keys_in[1])
             if i < l-1:
-                self.assertEqual(auth.substractors[i].garbled_keys_in[2], auth.substractors[i+1].garbled_keys_out[1])
-                self.assertEqual(auth.comparators[i].garbled_keys_in[1],(b'b'*16,b'b'*16))
-                self.assertEqual(auth.xnors[i].garbled_keys_in[1], auth.comparators[i].garbled_keys_in[1])
+                self.assertEqual(gc.substractors[i].garbled_keys_in[2], gc.substractors[i+1].garbled_keys_out[1])
+                self.assertEqual(gc.comparators[i].garbled_keys_in[1],(b'b'*16,b'b'*16))
+                self.assertEqual(gc.xnors[i].garbled_keys_in[1], gc.comparators[i].garbled_keys_in[1])
 
+    def test_evaluate_garble_circuit_false(self):
+        # assume a circuit was generated
+        auth = AuthProtocol()
+        gc = GarbleCircuit()
+        l = 4
+        gc.generate_random_keys_for_circuit(l)
+        gc.generate_gc(l)
 
+        # simulate a client with correct keys
         hd = BitArray('0b1011')
         r = BitArray('0b0101')
         tau = BitArray('0b1001')
+        k_hd = ['' for _ in range(l)]
+        k_r = ['' for _ in range(l)]
+        k_tau = ['' for _ in range(l)]
         for i in range(l):
-            k_hd_3 = auth.substractors[3].garbled_keys_in[0][int(hd[3])]
-            k_r_3 = auth.substractors[3].garbled_keys_in[1][int(r[3])]
-            k_tau_3 = auth.comparators[3].garbled_keys_in[1][int(tau[3])]
-        key_out = auth.eval_garbled_circuit()
+            k_hd[i] = gc.substractors[i].garbled_keys_in[0][int(hd[i])]
+            k_r[i] = gc.substractors[i].garbled_keys_in[1][int(r[i])]
+            k_tau[i] = gc.comparators[i].garbled_keys_in[1][int(tau[i])]
 
+        key_out = gc.eval_garbled_circuit(k_hd, k_r, k_tau)
+        self.assertEqual(key_out, gc.ors[0].garbled_keys_out[0][0])
+
+    def test_evaluate_garble_circuit_true(self):
+        # assume a circuit was generated
+        auth = AuthProtocol()
+        gc = GarbleCircuit()
+        l = 4
+        gc.generate_random_keys_for_circuit(l)
+        gc.generate_gc(l)
+
+        # simulate a client with correct keys
+        hd = BitArray('0b1011')
+        r = BitArray('0b0101')
+        tau = BitArray('0b0001')
+        k_hd = ['' for _ in range(l)]
+        k_r = ['' for _ in range(l)]
+        k_tau = ['' for _ in range(l)]
+        for i in range(l):
+            k_hd[i] = gc.substractors[i].garbled_keys_in[0][int(hd[i])]
+            k_r[i] = gc.substractors[i].garbled_keys_in[1][int(r[i])]
+            k_tau[i] = gc.comparators[i].garbled_keys_in[1][int(tau[i])]
+
+        key_out = gc.eval_garbled_circuit(k_hd, k_r, k_tau)
+        self.assertEqual(key_out, gc.ors[0].garbled_keys_out[0][1])
 
 @autologging.logged(logging.getLogger('homocrypto'))
 class TestOperationOnPlainText(TestCase):
