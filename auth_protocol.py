@@ -4,18 +4,64 @@ from cryptography.hazmat.backends import default_backend
 backend = default_backend()
 iv = os.urandom(16)
 
+# GCM mode
+def encrypt(key, plaintext, associated_data=b''):
+    # Generate a random 96-bit IV.
+    iv = os.urandom(12)
+
+    # Construct an AES-GCM Cipher object with the given key and a
+    # randomly generated IV.
+    encryptor = Cipher(
+        algorithms.AES(key),
+        modes.GCM(iv),
+        backend=default_backend()
+    ).encryptor()
+
+    # associated_data will be authenticated but not encrypted,
+    # it must also be passed in on decryption.
+    encryptor.authenticate_additional_data(associated_data)
+
+    # Encrypt the plaintext and get the associated ciphertext.
+    # GCM does not require padding.
+    ciphertext = encryptor.update(plaintext) + encryptor.finalize()
+
+    return (iv, ciphertext, encryptor.tag)
+
+def decrypt(key, associated_data, iv, ciphertext, tag):
+    # Construct a Cipher object, with the key, iv, and additionally the
+    # GCM tag used for authenticating the message.
+    decryptor = Cipher(
+        algorithms.AES(key),
+        modes.GCM(iv, tag),
+        backend=default_backend()
+    ).decryptor()
+
+    # We put associated_data back in or the tag will fail to verify
+    # when we finalize the decryptor.
+    decryptor.authenticate_additional_data(associated_data)
+
+    # Decryption gets us the authenticated plaintext.
+    # If the tag does not match an InvalidTag exception will be raised.
+    return decryptor.update(ciphertext) + decryptor.finalize()
+
 # AES CBC used in garbled circuit
 def enc(k , m):
-    cipher = Cipher(algorithms.AES(k), modes.CBC(iv), backend=backend)
-    encryptor = cipher.encryptor()
-    ct = encryptor.update(m) + encryptor.finalize()
-    return ct
+    # cipher = Cipher(algorithms.AES(k), modes.CBC(iv), backend=backend)
+    # encryptor = cipher.encryptor()
+    # ct = encryptor.update(m) + encryptor.finalize()
+    # return ct
+    (iv,ciphertext,tag) = encrypt(k,m)
+    return iv + ciphertext + tag
 
 def dec(k, c):
-    cipher = Cipher(algorithms.AES(k), modes.CBC(iv), backend=backend)
-    decryptor = cipher.decryptor()
-    m = decryptor.update(c) + decryptor.finalize()
-    return m
+    # cipher = Cipher(algorithms.AES(k), modes.CBC(iv), backend=backend)
+    # decryptor = cipher.decryptor()
+    # m = decryptor.update(c) + decryptor.finalize()
+    # return m
+    iv = c[0:12]
+    ciphertext = c[12:-16]
+    tag = c[-16:]
+    return decrypt(k, b'',iv, ciphertext, tag)
 
 
 class GarbleCircuit(object):
@@ -30,9 +76,9 @@ class GarbleCircuit(object):
                     gate.input[0] = i
                     gate.input[1] = j
                     gate.eval()
-                    c = enc(gate.garbled_keys_in[1][j],
-                            enc(gate.garbled_keys_in[0][i],gate.garbled_keys_out[0][gate.output[0]]))
-                    gate.garbled_ciphertexts.append(c)
+                    inner = enc(gate.garbled_keys_in[0][i],gate.garbled_keys_out[0][gate.output[0]])
+                    outter = enc(gate.garbled_keys_in[1][j],inner)
+                    gate.garbled_ciphertexts.append(outter)
 
         if gate.type == 'substractor':
             for i in (0,1):
@@ -71,6 +117,18 @@ class GateSimple(object):
             key0 = os.urandom(16)
             key1 = os.urandom(16)
             self.garbled_keys_out[i] = (key0, key1)
+
+    def eval_keys(self, k1, k2):
+        # output a key given 2 input keys and the ciphertexts table built already
+        if len(self.garbled_ciphertexts) == 0:
+            raise AttributeError("garbled ciphertexts not built yet")
+        for i in self.garbled_ciphertexts:
+            try:
+                k_out = dec(k1,dec(k2,i))
+                return k_out
+            except:
+                continue
+        raise ValueError('input key(s) not correct')
 
 class GateXNOr(GateSimple):
     def __init__(self):
@@ -163,6 +221,19 @@ class Substractor(GateSimple):
         if self.input[0] == 1 and self.input[1] == 1 and self.input[2] == 1:
             self.output[0] = 1
             self.output[1] = 1
+
+    def eval_keys(self, k1, k2, k3):
+        # output a key given 2 input keys and the ciphertexts table built already
+        if len(self.garbled_ciphertexts) == 0:
+            raise AttributeError("garbled ciphertexts not built yet")
+        for i in self.garbled_ciphertexts:
+            try:
+                k_out = dec(k1,dec(k2,dec(k3,i[0])))
+                k_out2 = dec(k1,dec(k2,dec(k3,i[1])))
+                return k_out, k_out2
+            except:
+                continue
+        raise ValueError('input key(s) not correct')
 
 
 class AuthProtocol(object):

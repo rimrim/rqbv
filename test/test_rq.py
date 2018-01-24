@@ -52,8 +52,8 @@ class Test_GC(TestCase):
         k0 = subs.garbled_keys_in[0][0]
         k1 = subs.garbled_keys_in[1][0]
         k2 = subs.garbled_keys_in[2][0]
-        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[0][0])))
-        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[0][1])))
+        out0, out1 = subs.eval_keys(k0, k1, k2)
+
         self.assertEqual(out0, subs.garbled_keys_out[0][0])
         self.assertEqual(out1, subs.garbled_keys_out[1][0])
 
@@ -61,16 +61,14 @@ class Test_GC(TestCase):
         k0 = subs.garbled_keys_in[0][0]
         k1 = subs.garbled_keys_in[1][0]
         k2 = subs.garbled_keys_in[2][1]
-        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[1][0])))
-        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[1][1])))
+        out0, out1 = subs.eval_keys(k0, k1, k2)
         self.assertEqual(out0, subs.garbled_keys_out[0][1])
         self.assertEqual(out1, subs.garbled_keys_out[1][1])
 
         k0 = subs.garbled_keys_in[0][0]
         k1 = subs.garbled_keys_in[1][1]
         k2 = subs.garbled_keys_in[2][0]
-        out0 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[2][0])))
-        out1 = dec(k0, dec(k1, dec(k2, subs.garbled_ciphertexts[2][1])))
+        out0, out1 = subs.eval_keys(k0, k1, k2)
         self.assertEqual(out0, subs.garbled_keys_out[0][1])
         self.assertEqual(out1, subs.garbled_keys_out[1][1])
 
@@ -84,22 +82,22 @@ class Test_GC(TestCase):
 
         k0 = comp.garbled_keys_in[0][0]
         k1 = comp.garbled_keys_in[1][0]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[0]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
         k0 = comp.garbled_keys_in[0][0]
         k1 = comp.garbled_keys_in[1][1]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[1]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
         k0 = comp.garbled_keys_in[0][1]
         k1 = comp.garbled_keys_in[1][0]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[2]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][1])
 
         k0 = comp.garbled_keys_in[0][1]
         k1 = comp.garbled_keys_in[1][1]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[3]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
     def test_garble_a_gate_and(self):
@@ -111,22 +109,22 @@ class Test_GC(TestCase):
 
         k0 = comp.garbled_keys_in[0][0]
         k1 = comp.garbled_keys_in[1][0]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[0]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
         k0 = comp.garbled_keys_in[0][0]
         k1 = comp.garbled_keys_in[1][1]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[1]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
         k0 = comp.garbled_keys_in[0][1]
         k1 = comp.garbled_keys_in[1][0]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[2]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][0])
 
         k0 = comp.garbled_keys_in[0][1]
         k1 = comp.garbled_keys_in[1][1]
-        out = dec(k0,dec(k1,comp.garbled_ciphertexts[3]))
+        out = comp.eval_keys(k0, k1)
         self.assertEqual(out, comp.garbled_keys_out[0][1])
 
     def test_xnor(self):
