@@ -3,6 +3,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 backend = default_backend()
 iv = os.urandom(16)
+
+# AES CBC used in garbled circuit
 def enc(k , m):
     cipher = Cipher(algorithms.AES(k), modes.CBC(iv), backend=backend)
     encryptor = cipher.encryptor()
@@ -20,17 +22,8 @@ class GarbleCircuit(object):
     def __init__(self):
         pass
 
-
     def garble(self, gate):
-        for i in range(len(gate.input)):
-            key0 = os.urandom(16)
-            key1 = os.urandom(16)
-            gate.garbled_keys_in[i] = (key0, key1)
-        for i in range(len(gate.output)):
-            key0 = os.urandom(16)
-            key1 = os.urandom(16)
-            gate.garbled_keys_out[i] = (key0, key1)
-
+        # provided the keys of the wire, this function outputs the ciphertext table of a gate
         if gate.type == 'general':
             for i in (0,1):
                 for j in (0,1):
@@ -68,6 +61,16 @@ class GateSimple(object):
         self.garbled_keys_out = ['']
         self.garbled_ciphertexts = []
         self.type = 'general'
+
+    def assign_random_keys(self):
+        for i in range(len(self.input)):
+            key0 = os.urandom(16)
+            key1 = os.urandom(16)
+            self.garbled_keys_in[i] = (key0, key1)
+        for i in range(len(self.output)):
+            key0 = os.urandom(16)
+            key1 = os.urandom(16)
+            self.garbled_keys_out[i] = (key0, key1)
 
 class GateXNOr(GateSimple):
     def __init__(self):
@@ -126,7 +129,7 @@ class Comparator(GateSimple):
         if self.input[0] == 1 and self.input[1] == 1:
             self.output[0] = 0
 
-class Substractor(object):
+class Substractor(GateSimple):
     def __init__(self):
         self.input = [0 for _ in range(3)]
         self.output = [0 for _ in range(2)]
@@ -164,22 +167,132 @@ class Substractor(object):
 
 class AuthProtocol(object):
     def __init__(self):
+        pass
+
+    def generate_circuit(self, hd, r, tau):
+        # this circuit does check hd - r > tau or not, even bits in string
+        l = len(hd)
+        if l != len(r) or l != len(tau):
+            print('fix input lenghts, should be identical')
+            return
+
         self.substractors = []
         self.comparators = []
-        self.xor = []
+        self.xnors = []
+        self.ands = []
+        self.ors = []
 
-    def generate_circuit(self, l = 10):
         for i in range(l):
             subs = Substractor()
             self.substractors.append(subs)
 
-        for i in range(l):
             comp = Comparator()
             self.comparators.append(comp)
+
+            xnor = GateXNOr()
+            self.xnors.append(xnor)
+
+            ands = GateAnd()
+            self.ands.append(ands)
+
+            ors = GateOr()
+            self.ors.append(ors)
+
+        # connect the wires
+        for i in range(l-1,-1,-1):
+            self.substractors[i].input[0] = int(hd[i])
+            self.substractors[i].input[1] = int(r[i])
+            self.substractors[i].eval()
+            if i > 0:
+                self.substractors[i-1].input[2] = self.substractors[i].output[1]
+
+            self.comparators[i].input[0] = self.substractors[i].output[0]
+            self.comparators[i].input[1] = int(tau[i])
+            self.comparators[i].eval()
+
+            if i < l - 1:
+                self.xnors[i].input[0] = self.substractors[i].output[0]
+                self.xnors[i].input[1] = int(tau[i])
+                self.xnors[i].eval()
+
+                if i == l - 2:
+                    self.ands[i].input[0] = self.comparators[i+1].output[0]
+                else:
+                    self.ands[i].input[0] = self.ors[i+1].output[0]
+                self.ands[i].input[1] = self.xnors[i].output[0]
+                self.ands[i].eval()
+
+                self.ors[i].input[0] = self.ands[i].output[0]
+                self.ors[i].input[1] = self.comparators[i].output[0]
+                self.ors[i].eval()
+
+        return self.ors[0].output[0]
 
     def print_circuit(self):
         print('number of substractors ' + str(len(self.substractors)))
         print('number of comparators ' + str(len(self.comparators)))
+
+    def eval_garbled_circuit(self):
+        pass
+
+    def generate_random_keys_for_circuit(self, l):
+        self.substractors = []
+        self.comparators = []
+        self.xnors = []
+        self.ands = []
+        self.ors = []
+
+        # assign random keys first, reconnect later
+        for i in range(l):
+            subs = Substractor()
+            subs.assign_random_keys()
+            self.substractors.append(subs)
+
+            comp = Comparator()
+            comp.assign_random_keys()
+            self.comparators.append(comp)
+
+            xnor = GateXNOr()
+            xnor.assign_random_keys()
+            self.xnors.append(xnor)
+
+            ands = GateAnd()
+            ands.assign_random_keys()
+            self.ands.append(ands)
+
+            ors = GateOr()
+            ors.assign_random_keys()
+            self.ors.append(ors)
+
+    def generate_gc(self, l):
+        #connect the keys according to the circuit
+        for i in range(l-1,-1,-1):
+            if i > 0:
+                self.substractors[i-1].garbled_keys_in[2] = self.substractors[i].garbled_keys_out[1]
+
+            self.comparators[i].garbled_keys_in[0] = self.substractors[i].garbled_keys_out[0]
+
+            if i < l - 1:
+                self.xnors[i].garbled_keys_in[0] = self.substractors[i].garbled_keys_out[0]
+                self.xnors[i].garbled_keys_in[1] = self.comparators[i].garbled_keys_in[1]
+
+                if i == l - 2:
+                    self.ands[i].garbled_keys_in[0] = self.comparators[i+1].garbled_keys_out[0]
+                else:
+                    self.ands[i].garbled_keys_in[0] = self.ors[i+1].garbled_keys_out[0]
+                self.ands[i].garbled_keys_in[1] = self.xnors[i].garbled_keys_out[0]
+
+                self.ors[i].garbled_keys_in[0] = self.ands[i].garbled_keys_out[0]
+                self.ors[i].garbled_keys_in[1] = self.comparators[i].garbled_keys_out[0]
+
+        # produce the ciphertexts
+        gc = GarbleCircuit()
+        for i in range(l):
+            gc.garble(self.substractors[i])
+            gc.garble(self.comparators[i])
+            gc.garble(self.xnors[i])
+            gc.garble(self.ands[i])
+            gc.garble(self.ors[i])
 
 # class Comparator10Bits(object):
 #     def __init__(self):

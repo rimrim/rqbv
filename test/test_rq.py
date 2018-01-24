@@ -28,11 +28,11 @@ class Test_GC(TestCase):
     def tearDown(self):
         pass
 
-    def test_print_truth_table(self):
-        for j in (0,1):
-            for l in (0,1):
-                for m in (0,1):
-                    print(j, l, m)
+    # def test_print_truth_table(self):
+    #     for j in (0,1):
+    #         for l in (0,1):
+    #             for m in (0,1):
+    #                 print(j, l, m)
 
     def test_aes(self):
         gc = GarbleCircuit()
@@ -45,6 +45,7 @@ class Test_GC(TestCase):
     def test_garble_a_gate_substractor(self):
         gc = GarbleCircuit()
         subs = Substractor()
+        subs.assign_random_keys()
         gc.garble(subs)
         self.assertEqual(len(subs.garbled_keys_in[0][0]),16)
 
@@ -77,6 +78,7 @@ class Test_GC(TestCase):
     def test_garble_a_gate_comparator(self):
         gc = GarbleCircuit()
         comp = Comparator()
+        comp.assign_random_keys()
         gc.garble(comp)
         self.assertEqual(len(comp.garbled_keys_in[0][0]),16)
 
@@ -103,6 +105,7 @@ class Test_GC(TestCase):
     def test_garble_a_gate_and(self):
         gc = GarbleCircuit()
         comp = GateAnd()
+        comp.assign_random_keys()
         gc.garble(comp)
         self.assertEqual(len(comp.garbled_keys_in[0][0]),16)
 
@@ -145,7 +148,7 @@ class Test_GC(TestCase):
         a.eval()
         self.assertEqual(a.output[0],0)
 
-    def test_and_or(self):
+    def test_or(self):
         a = GateOr()
         a.input[0] = 1
         a.input[1] = 1
@@ -195,34 +198,49 @@ class Test_GC(TestCase):
     def test_generate_circuit(self):
         auth = AuthProtocol()
         # check whether a - b > tau or not, in plaintext
-        circ = auth.generate_circuit(l = 4)
-        a = BitArray('0b1011')
-        b = BitArray('0b0101')
-        # 11 - 5 = 6
+        hd = BitArray('0b1011')
+        r = BitArray('0b0101')
+        tau = BitArray('0b1001')
+        output = auth.generate_circuit(hd, r, tau)
+        self.assertEqual(output, 0)
+
+        tau = BitArray('0b0011')
+        output = auth.generate_circuit(hd, r, tau)
+        self.assertEqual(output, 1)
+
+    def test_generate_garble_circuit(self):
+        auth = AuthProtocol()
+
         l = 4
-        tau = BitArray('0b1000')
-
-        for i in range(l-1,-1,-1):
-            auth.substractors[i].input[0] = int(a[i])
-            auth.substractors[i].input[1] = int(b[i])
-            auth.substractors[i].eval()
-            if i > 0:
-                auth.substractors[i-1].input[2] = auth.substractors[i].output[1]
-
+        auth.generate_random_keys_for_circuit(l)
         for i in range(l):
-            auth.comparators[i].input[0] = auth.substractors[l-1-i].output[0]
-            auth.comparators[i].input[1] = int(tau[i])
-            auth.comparators[i].eval()
+            auth.comparators[i].garbled_keys_in[1] = (b'b'*16,b'b'*16)
 
-        for i in auth.comparators:
-            if i.output[0] == 1:
-                print('yes')
-                return
-        print('no')
+        auth.generate_gc(l)
+        for i in range(l):
+            self.assertEqual(auth.comparators[i].garbled_keys_in[0],auth.substractors[i].garbled_keys_out[0])
+            if i != (l-1):
+                self.assertEqual(auth.comparators[i].garbled_keys_out[0],auth.ors[i].garbled_keys_in[1])
+            else:
+                self.assertEqual(auth.comparators[i].garbled_keys_out[0],auth.ands[i-1].garbled_keys_in[0])
+            if i < l -2:
+                self.assertEqual(auth.ors[i].garbled_keys_in[0], auth.ands[i].garbled_keys_out[0])
+                self.assertEqual(auth.xnors[i].garbled_keys_in[0], auth.substractors[i].garbled_keys_out[0])
+                self.assertEqual(auth.xnors[i].garbled_keys_out[0], auth.ands[i].garbled_keys_in[1])
+            if i < l-1:
+                self.assertEqual(auth.substractors[i].garbled_keys_in[2], auth.substractors[i+1].garbled_keys_out[1])
+                self.assertEqual(auth.comparators[i].garbled_keys_in[1],(b'b'*16,b'b'*16))
+                self.assertEqual(auth.xnors[i].garbled_keys_in[1], auth.comparators[i].garbled_keys_in[1])
 
 
-
-
+        hd = BitArray('0b1011')
+        r = BitArray('0b0101')
+        tau = BitArray('0b1001')
+        for i in range(l):
+            k_hd_3 = auth.substractors[3].garbled_keys_in[0][int(hd[3])]
+            k_r_3 = auth.substractors[3].garbled_keys_in[1][int(r[3])]
+            k_tau_3 = auth.comparators[3].garbled_keys_in[1][int(tau[3])]
+        key_out = auth.eval_garbled_circuit()
 
 
 @autologging.logged(logging.getLogger('homocrypto'))

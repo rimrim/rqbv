@@ -59,7 +59,7 @@ class FunctionalTest(unittest.TestCase):
         #   - Sample random r and noise e_2
         #   - Add noise to enc(HD): enc(HDD,e_tot) = enc(HD,e_1) + enc(r, e_2)
         #   - Compile the garble circuit (GC) to compute HD < \tau, given r and HDD
-        GC = AuthProtocol.generate_circuit(l = 10)
+        GC = AuthProtocol()
         #   - Send the enc(HDD), k_r_i and GC to client
         #   - Client decrypt enc(HDD) to get HDD
         #   - Client decompose HDD to its binary representation (h_0, h_1, ..., h_{l-1})
